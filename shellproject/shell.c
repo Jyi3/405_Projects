@@ -1,8 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <signal.h>
+
+#define MAX_COMMAND_LENGTH 100
+
+int main() {
+    char command[MAX_COMMAND_LENGTH];
+
+    while (1) {
+        // Display the prompt and get user input
+        printf("gshell> ");
+        if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL) {
+            // End of file (Ctrl-D) was entered
+            break;
+        }
+
+        // Remove trailing newline
+        command[strcspn(command, "\n")] = '\0';
+
+        if (strcmp(command, "exit") == 0) {
+            // "exit" was entered
+            break;
+        }
+
+        // Execute the command
+        system(command);
+    }
+
+    return 0;
+}
 
