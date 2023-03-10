@@ -9,9 +9,14 @@
 #define MAX_ARGS 10
 
 volatile sig_atomic_t interrupted = 0;
+volatile sig_atomic_t kill_interrupted = 0;
 
 void handle_interrupt(int signal) {
     interrupted = 1;
+}
+
+void handle_kill(int signal) {
+    kill_interrupted = 1;
 }
 
 int main() {
@@ -20,11 +25,20 @@ int main() {
     // Set up the interrupt signal handler
     signal(SIGINT, handle_interrupt);
 
+    // Set up the interrupt signal handler
+    signal(SIGKILL, handle_kill);
+
     while (1) {
         // Check if interrupt signal was received
         if (interrupted) {
             interrupted = 0;
             continue;
+        }
+
+        if (kill_interrupted) {
+            kill_interrupted = 0;
+            printf("\n");
+            break;
         }
 
         // Display the prompt and get user input
@@ -49,7 +63,6 @@ int main() {
         //for (int j = 0; j < i; j++){
           // printf("%s\n", args[j]);}
         if (i == 0 || args[0] == NULL) {
-            // Empty command, or no arguments given
             continue;
         }else if (strcmp(args[0], "cd") == 0){
             chdir(args[1]);
