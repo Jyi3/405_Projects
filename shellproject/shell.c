@@ -4,21 +4,31 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
+<<<<<<< Updated upstream
 #include <dirent.h>
+=======
+#include <fcntl.h>
+>>>>>>> Stashed changes
 
 #define MAX_COMMAND_LENGTH 100
 #define MAX_ARGS 10
 
 volatile sig_atomic_t interrupted = 0;
+<<<<<<< Updated upstream
 //volatile sig_atomic_t kill_interrupted = 0;
+=======
+>>>>>>> Stashed changes
 
 void handle_interrupt(int signal) {
     interrupted = 1;
 }
 
+<<<<<<< Updated upstream
 //void handle_kill(int signal) {
 //    kill_interrupted = 1;
 //}
+=======
+>>>>>>> Stashed changes
 
 int main() {
     char command[MAX_COMMAND_LENGTH];
@@ -26,6 +36,7 @@ int main() {
     // Set up the interrupt signal handler
     signal(SIGINT, handle_interrupt);
 
+<<<<<<< Updated upstream
     // Set up the interrupt signal handler
     //signal(SIGKILL, handle_kill);
 
@@ -45,13 +56,18 @@ int main() {
 //            break;
 //        }
 
+=======
+    while (1) {
+>>>>>>> Stashed changes
         // Display the prompt and get user input
         printf("gshell> ");
         if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL) {
-            // End of input stream (Ctrl+D)
             printf("\n");
             return 0;
+<<<<<<< Updated upstream
             break;
+=======
+>>>>>>> Stashed changes
         }
         //remove trailing new line
         command[strcspn(command, "\n")] = '\0'; 
@@ -85,16 +101,36 @@ int main() {
         }else {
             int pid = fork();
             if (pid == 0){
+                // Check for input redirection
+                for (int j = 0; j < i; j++) {
+                    if (strcmp(args[j], "<") == 0) {
+                        int input_fd = open(args[j+1], O_RDONLY);
+                        dup2(input_fd, STDIN_FILENO);
+                        close(input_fd);
+                        args[j] = NULL;
+                        break;
+                    }
+                }
+
+                // Check for output redirection
+                for (int j = 0; j < i; j++) {
+                    if (strcmp(args[j], ">") == 0) {
+                        int output_fd = open(args[j+1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+                        dup2(output_fd, STDOUT_FILENO);
+                        close(output_fd);
+                        args[j] = NULL;
+                        break;
+                    }
+                }
+
                 execvp(args[0], args);
+                printf("Unknown command: %s\n", args[0]);
+                exit(EXIT_FAILURE);
             }else if (pid > 0){
                 int status;
                 waitpid(pid, &status, 0);
             }
-            
         }
-
-        // Execute the command
-        system(command);
     }
 
     return 0;
