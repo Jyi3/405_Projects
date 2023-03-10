@@ -4,20 +4,21 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <dirent.h>
 
 #define MAX_COMMAND_LENGTH 100
 #define MAX_ARGS 10
 
 volatile sig_atomic_t interrupted = 0;
-volatile sig_atomic_t kill_interrupted = 0;
+//volatile sig_atomic_t kill_interrupted = 0;
 
 void handle_interrupt(int signal) {
     interrupted = 1;
 }
 
-void handle_kill(int signal) {
-    kill_interrupted = 1;
-}
+//void handle_kill(int signal) {
+//    kill_interrupted = 1;
+//}
 
 int main() {
     char command[MAX_COMMAND_LENGTH];
@@ -26,7 +27,10 @@ int main() {
     signal(SIGINT, handle_interrupt);
 
     // Set up the interrupt signal handler
-    signal(SIGKILL, handle_kill);
+    //signal(SIGKILL, handle_kill);
+
+    DIR *dir;
+    struct dirent *ent;
 
     while (1) {
         // Check if interrupt signal was received
@@ -35,17 +39,18 @@ int main() {
             continue;
         }
 
-        if (kill_interrupted) {
-            kill_interrupted = 0;
-            printf("\n");
-            break;
-        }
+//        if (kill_interrupted) {
+//            kill_interrupted = 0;
+//            printf("\n");
+//            break;
+//        }
 
         // Display the prompt and get user input
         printf("gshell> ");
         if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL) {
             // End of input stream (Ctrl+D)
             printf("\n");
+            return 0;
             break;
         }
         //remove trailing new line
@@ -70,6 +75,13 @@ int main() {
         }else if (strcmp(command, "exit") == 0) {
             // "exit" was entered
             break;
+        }else if (strcmp(args[0], "cls") == 0) {
+            dir = opendir("."); 
+            while ((ent = readdir(dir)) != NULL){
+                    printf("%s\n", ent->d_name);
+            }
+                closedir(dir);
+                
         }else {
             int pid = fork();
             if (pid == 0){
