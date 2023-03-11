@@ -64,7 +64,9 @@ int main() {
             args[i] = token;
             token = strtok(NULL, " ");
             i++;
+       
         }
+        int n = sizeof(args);
         //for (int j = 0; j < i; j++){
           // printf("%s\n", args[j]);}
         if (i == 0 || args[0] == NULL) {
@@ -82,7 +84,14 @@ int main() {
             }
                 closedir(dir);
                 
-        }else {
+        }else if (strcmp(args[n-1], "&") == 0){
+                int pid = fork();
+                if (pid == 0){
+                   execvp(args[0], args);
+                }
+
+                }else {
+
             int pid = fork();
             if (pid == 0){
                 execvp(args[0], args);
@@ -92,7 +101,6 @@ int main() {
             }
             
         }
-
         // Execute the command
         system(command);
     }
