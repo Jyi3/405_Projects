@@ -12,11 +12,13 @@
 
 volatile sig_atomic_t interrupted = 0;
 
-void handle_interrupt(int signal) {
+void handle_interrupt(int signal) 
+{
     interrupted = 1;
 }
 
-int main() {
+int main() 
+{
     char command[MAX_COMMAND_LENGTH];
 
     // Set up the interrupt signal handler
@@ -27,7 +29,8 @@ int main() {
 
     while (1) {
         // Check if interrupt signal was received
-        if (interrupted) {
+        if (interrupted)
+        {
             interrupted = 0;
             continue;
         }
@@ -71,23 +74,28 @@ int main() {
         }else {
             int pid = fork();
             if (pid == 0){
-                
-                if (command != NULL && args[0] != NULL)
+
+                // int cArgs = 0;
+                // while (args[cArgs] != NULL)
+                // {
+                //     printf("%s is at location: %d\n",args[cArgs],cArgs);
+                //     cArgs++;
+                // }
+
+                if (command != NULL && i == 1)
                 {
-                    execvp(args[0], args);
+                    //printf("TEST COKMPLETE\n");
+
                     // Execute the command
+                    execvp(args[0], args);
+                    
                     system(command);
-                        
-                    int p = 0;
-                    while (args[p] != NULL)
-                    {
-                        printf("%s is in args pos: %d \n",args[p], p);
-                        args[p] = NULL;
-                        p++;
-                    }
+                    // If execvp returns, there was an error
+                    //printf("Unknown command args 1 == null\n");
+                    break;
 
                 }
-                else if(command != NULL && args[0] != NULL)
+                else if (command != NULL && args[1] != NULL )
                 {
                     // Check for input redirection
                     for (int j = 0; j < i; j++) 
@@ -98,7 +106,7 @@ int main() {
                             dup2(input_fd, STDIN_FILENO);
                             close(input_fd);
                             args[j] = NULL;
-                            printf("%s is in args pos: %d \n",args[j], j);
+                            i -= 2; // Update the number of arguments
                         }
                     }
 
@@ -110,32 +118,32 @@ int main() {
                             int output_fd = open(args[j+1], O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
                             dup2(output_fd, STDOUT_FILENO);
                             close(output_fd);
-                            printf("%s is in args pos: %d \n",args[j], j);
                             args[j] = NULL;
+                            i -= 2; // Update the number of arguments
                         }
+                        
                     }
 
-                    
-                    int p = 0;
-                    while (args[p] != NULL)
-                    {
-                        printf("%s is in args pos: %d \n",args[p], p);
-                        args[p] = NULL;
-                        p++;
-                    }
+                    // int cArgs = 0;
+                    // while (args[cArgs] != NULL)
+                    // {
+                    //     printf("%s is at location: %d\n",args[cArgs],cArgs);
+                    //     args[cArgs] = NULL;
+                    //     cArgs++;
+                    // }
+                    // Execute the command
+                    // execvp(args[0], args);
 
-                    
+
+                        
+                    // If execvp returns, there was an error
+                    printf("Unknown command args1 != null\n");
+                    break;
+
                 }
                 else
                 {
-                    int p = 0;
-                    while (args[p] != NULL)
-                    {
-                        printf("%s is in args pos: %d \n",args[p], p);
-                        args[p] = NULL;
-                        p++;
-                    }
-                    printf("Unknown command\n");
+                    printf("Unknown command args else\n");
                 }
                 exit(0);
             }else if (pid > 0){
