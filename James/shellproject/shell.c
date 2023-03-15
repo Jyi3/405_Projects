@@ -72,6 +72,16 @@ int main()
             }
             closedir(dir);
         }else {
+
+            int background = 0;
+            if (i > 0 && strcmp(args[i-1], "&") == 0) {
+                // Program should be run in the background
+                background = 1;
+                args[i-1] = NULL;
+                i--;
+            }
+
+
             int pid = fork();
             if (pid == 0){
 
@@ -124,15 +134,15 @@ int main()
                         
                     }
 
-                    // int cArgs = 0;
-                    // while (args[cArgs] != NULL)
-                    // {
-                    //     printf("%s is at location: %d\n",args[cArgs],cArgs);
-                    //     args[cArgs] = NULL;
-                    //     cArgs++;
-                    // }
-                    // Execute the command
-                    // execvp(args[0], args);
+                    int cArgs = 0;
+                    while (args[cArgs] != NULL)
+                    {
+                        printf("%s is at location: %d\n",args[cArgs],cArgs);
+                        cArgs++;
+                    }
+                    
+                    //Execute the command
+                    execvp(args[0], args);
 
 
                         
