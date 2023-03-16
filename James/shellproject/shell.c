@@ -59,7 +59,7 @@ int main()
             i++;
        
         }
-        printf("%d\n", i);
+        //printf("%d\n", i);
         //for (int j = 0; j < i; j++){
           // printf("%s\n", args[j]);}
         int pipe_used = 0; //used to check if pipe was used
@@ -138,13 +138,13 @@ int main()
             closedir(dir);
         }else {
 
-            int background = 0;
-            if (i > 0 && strcmp(args[i-1], "&") == 0) {
-                // Program should be run in the background
-                background = 1;
-                args[i-1] = NULL;
-                i--;
-            }
+            // int background = 0;
+            // if (i > 0 && strcmp(args[i-1], "&") == 0) {
+            //     // Program should be run in the background
+            //     background = 1;
+            //     args[i-1] = NULL;
+            //     i--;
+            // }
 
 
             int pid = fork();
@@ -199,12 +199,12 @@ int main()
                         
                     }
 
-                    int cArgs = 0;
-                    while (args[cArgs] != NULL)
-                    {
-                        printf("%s is at location: %d\n",args[cArgs],cArgs);
-                        cArgs++;
-                    }
+                    // int cArgs = 0;
+                    // while (args[cArgs] != NULL)
+                    // {
+                    //     printf("%s is at location: %d\n",args[cArgs],cArgs);
+                    //     cArgs++;
+                    // }
                     
                     //Execute the command
                     execvp(args[0], args);
@@ -227,7 +227,7 @@ int main()
             }
         }
         // Execute the command
-        system(command);
+        //system(command);
         
 
     }
