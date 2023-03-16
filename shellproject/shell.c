@@ -9,6 +9,7 @@
 
 #define MAX_COMMAND_LENGTH 100
 #define MAX_ARGS 10
+#define MIN_ARGS 3
 
 volatile sig_atomic_t interrupted = 0;
 
@@ -42,9 +43,10 @@ int main() {
 
         //remove trailing new line
         command[strcspn(command, "\n")] = '\0'; 
-
         char *token;
         char *args[MAX_ARGS];
+        char **sub_args1;
+        char **sub_args2;
         int i = 0;
         token = strtok(command, " ");
 
@@ -54,14 +56,60 @@ int main() {
             i++;
        
         }
-<<<<<<< HEAD
-        int n = sizeof(args);
+        printf("%d\n", i);
         //for (int j = 0; j < i; j++){
           // printf("%s\n", args[j]);}
-=======
+        int pipe_used = 0; //used to check if pipe was used
+        int pipe_dex; //saves the index of the pipe symbol to split args into 2 arrays
+        for (int j = 0; j < i; j++){
+        //printf("james: %p\n", args[j]);
+            if (strcmp(args[j], "|") == 0){
+                pipe_used = 1;
+                pipe_dex = i;
+            }
+       // printf("james\n");
+        }
 
->>>>>>> bfb8fc9ab79b7bcc38d0da539b1cfb72cc51a6ad
-        if (i == 0 || args[0] == NULL) {
+
+                if (pipe_used == 1){
+                sub_args1 = malloc(sizeof(char *) *pipe_dex);
+                sub_args2 = malloc(sizeof(char *) *(i-pipe_dex));
+                for (int j = 0; j < pipe_dex; j++){
+                    sub_args1[j] = args[j];
+                    printf("%s\n", sub_args1[j]);
+                }
+                for (int j = pipe_dex; j < i; j++){
+                    sub_args2[j-pipe_dex] = args[j];
+                    printf("%s\n", sub_args2[j]);
+                } 
+                int p[2];
+                pipe(p);
+                if (fork() == 0) { //left child
+                        dup2(p[1],1); //dupe pipe write end on top of stdout
+                        close(p[0]); //close pipe fd's
+                        close(p[1]);
+                        execvp(sub_args1[0], sub_args1);
+                }
+                else {
+                    if (fork() == 0) { //right child
+                        dup2(p[0], 0);// dup pipe read end on top of stdin
+                        close(p[0]);//close pipe fd's
+                        close(p[1]);
+                        execvp(sub_args2[0], sub_args2);
+                    }
+                    else {
+                        //parent
+                        close(p[0]);
+                        close(p[1]);
+                        wait(NULL);
+                        wait(NULL);
+                    }
+                
+                }
+                
+
+
+        }else if (i == 0 || args[0] == NULL) {
             continue;
         }else if (strcmp(args[0], "cd") == 0){
             chdir(args[1]);
@@ -74,21 +122,18 @@ int main() {
             while ((ent = readdir(dir)) != NULL){
                 printf("%s\n", ent->d_name);
             }
-<<<<<<< HEAD
                 closedir(dir);
                 
-        }else if (strcmp(args[n-1], "&") == 0){
+        }else if (strcmp(args[i-1], "&") == 0){
                 int pid = fork();
                 if (pid == 0){
+                    int status;
                    execvp(args[0], args);
+                   waitpid(pid, &status, 0);
                 }
 
-                }else {
-
-=======
             closedir(dir);
         }else {
->>>>>>> bfb8fc9ab79b7bcc38d0da539b1cfb72cc51a6ad
             int pid = fork();
             if (pid == 0){
                 
@@ -163,13 +208,10 @@ int main() {
                 waitpid(pid, &status, 0);
             }
         }
-<<<<<<< HEAD
         // Execute the command
         system(command);
-=======
         
 
->>>>>>> bfb8fc9ab79b7bcc38d0da539b1cfb72cc51a6ad
     }
 
     return 0;
