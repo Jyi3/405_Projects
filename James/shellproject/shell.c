@@ -38,6 +38,8 @@ int main()
 
         // Display the prompt and get user input
         printf("gshell> ");
+
+
         if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL) {
             // End of input stream (Ctrl+D)
             printf("\n");
@@ -52,6 +54,13 @@ int main()
         char **sub_args2;
         int i = 0;
         token = strtok(command, " ");
+        
+        int resetter = 0;
+        while (resetter < MAX_ARGS )
+        {
+            args[resetter] = NULL;
+            resetter++;
+        }
 
         while (token != NULL && i < MAX_ARGS){
             args[i] = token;
