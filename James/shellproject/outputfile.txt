@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 cat is at location: 0
 file.txt is at location: 1
 testfile
@@ -6,3 +7,7 @@ asfdxxx
 =======
 testfile
 >>>>>>> 5754a89b3a9a883d4d2aaca663cfad460098c0ab
+=======
+testfile
+asdfljkasdfjlka
+>>>>>>> parent of 5754a89 (Updated .gitignore)
