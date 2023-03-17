@@ -52,6 +52,7 @@ int main()
         char **sub_args2;
         int i = 0;
         token = strtok(command, " ");
+//        printf("james1\n");
 
         while (token != NULL && i < MAX_ARGS){
             args[i] = token;
@@ -59,7 +60,8 @@ int main()
             i++;
        
         }
-        printf("%d\n", i);
+  //      printf("james2\n");
+        //printf("%s\n", args[i]);
         //for (int j = 0; j < i; j++){
           // printf("%s\n", args[j]);}
         int pipe_used = 0; //used to check if pipe was used
@@ -68,9 +70,10 @@ int main()
         //printf("james: %p\n", args[j]);
             if (strcmp(args[j], "|") == 0){
                 pipe_used = 1;
-                pipe_dex = i;
+                pipe_dex = j;
+                printf("%d\n", pipe_dex);
             }
-       // printf("james\n");
+       //printf("james\n");
         }
 
 
@@ -79,28 +82,35 @@ int main()
                 sub_args2 = malloc(sizeof(char *) *(i-pipe_dex));
                 for (int j = 0; j < pipe_dex; j++){
                     sub_args1[j] = args[j];
-                    printf("%s\n", sub_args1[j]);
+                    printf("jamesa%s\n", sub_args1[j]);
                 }
-                for (int j = pipe_dex; j < i; j++){
-                    sub_args2[j-pipe_dex] = args[j];
-                    printf("%s\n", sub_args2[j]);
+                for (int j = pipe_dex + 1; j < i; j++){
+                    sub_args2[j] = args[j];
+                    printf("jamesb%s\n", sub_args2[j]);
                 } 
                 int p[2];
                 pipe(p);
-                if (fork() == 0) { //left child
-                        dup2(p[1],1); //dupe pipe write end on top of stdout
+                printf("jameslc\n");
+                int pid1 = fork();
+                if (pid1 == 0) { 
+                        printf("left child\n");
+                        dup2(p[1], STDOUT_FILENO);
+                        //dup2(p[1],1); //dupe pipe write end on top of stdout
                         close(p[0]); //close pipe fd's
                         close(p[1]);
                         execvp(sub_args1[0], sub_args1);
-                }
-                else {
-                    if (fork() == 0) { //right child
-                        dup2(p[0], 0);// dup pipe read end on top of stdin
-                        close(p[0]);//close pipe fd's
-                        close(p[1]);
-                        execvp(sub_args2[0], sub_args2);
-                    }
-                    else {
+                        printf("left child ran\n");
+                }else {
+                       int pid2 = fork();
+                }else if (pid2 == 0);
+                       printf("right child\n");
+                       dup2(p[0], STDIN_FILENO);
+                       //dup2(p[0], 0);// dup pipe read end on top of stdin
+                       close(p[0]);//close pipe fd's
+                       close(p[1]);
+                       execvp(sub_args2[0], sub_args2);
+                        printf("right child ran\n");
+                }else {
                         //parent
                         close(p[0]);
                         close(p[1]);
@@ -108,7 +118,7 @@ int main()
                         wait(NULL);
                     }
                 
-                }
+                
                 
 
 
@@ -128,14 +138,17 @@ int main()
                 closedir(dir);
                 
         }else if (strcmp(args[i-1], "&") == 0){
+                printf("background\n");
+                args[i-1] = '\0';
                 int pid = fork();
                 if (pid == 0){
-                    int status;
                    execvp(args[0], args);
-                   waitpid(pid, &status, 0);
+                }
+                else {
+                    continue;
                 }
 
-            closedir(dir);
+           // closedir(dir);
         }else {
 
             int background = 0;

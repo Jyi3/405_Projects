@@ -1,1 +1,4 @@
-Unknown command args1 != null
+cat is at location: 0
+file.txt is at location: 1
+testfile
+asfdxxx
