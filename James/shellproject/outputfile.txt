@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 cat is at location: 0
 file.txt is at location: 1
 testfile
@@ -11,3 +12,9 @@ testfile
 testfile
 asdfljkasdfjlka
 >>>>>>> parent of 5754a89 (Updated .gitignore)
+=======
+cat is at location: 0
+file.txt is at location: 1
+testfile
+asfdxxx
+>>>>>>> parent of 33f1e73 (Merge branch 'main' of github.com:Jyi3/405_Projects into main)

@@ -1,2 +1,6 @@
 testfile
+<<<<<<< HEAD
 asdfljkasdfjlka
+=======
+asfdxxx
+>>>>>>> parent of 33f1e73 (Merge branch 'main' of github.com:Jyi3/405_Projects into main)
