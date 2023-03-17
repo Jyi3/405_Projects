@@ -38,6 +38,8 @@ int main()
 
         // Display the prompt and get user input
         printf("gshell> ");
+
+
         if (fgets(command, MAX_COMMAND_LENGTH, stdin) == NULL) {
             // End of input stream (Ctrl+D)
             printf("\n");
@@ -52,7 +54,17 @@ int main()
         char **sub_args2;
         int i = 0;
         token = strtok(command, " ");
+<<<<<<< HEAD
 //        printf("james1\n");
+=======
+        
+        int resetter = 0;
+        while (resetter < MAX_ARGS )
+        {
+            args[resetter] = NULL;
+            resetter++;
+        }
+>>>>>>> 5754a89b3a9a883d4d2aaca663cfad460098c0ab
 
         while (token != NULL && i < MAX_ARGS){
             args[i] = token;
@@ -60,8 +72,12 @@ int main()
             i++;
        
         }
+<<<<<<< HEAD
   //      printf("james2\n");
         //printf("%s\n", args[i]);
+=======
+        //printf("%d\n", i);
+>>>>>>> 5754a89b3a9a883d4d2aaca663cfad460098c0ab
         //for (int j = 0; j < i; j++){
           // printf("%s\n", args[j]);}
         int pipe_used = 0; //used to check if pipe was used
@@ -151,13 +167,13 @@ int main()
            // closedir(dir);
         }else {
 
-            int background = 0;
-            if (i > 0 && strcmp(args[i-1], "&") == 0) {
-                // Program should be run in the background
-                background = 1;
-                args[i-1] = NULL;
-                i--;
-            }
+            // int background = 0;
+            // if (i > 0 && strcmp(args[i-1], "&") == 0) {
+            //     // Program should be run in the background
+            //     background = 1;
+            //     args[i-1] = NULL;
+            //     i--;
+            // }
 
 
             int pid = fork();
@@ -212,12 +228,12 @@ int main()
                         
                     }
 
-                    int cArgs = 0;
-                    while (args[cArgs] != NULL)
-                    {
-                        printf("%s is at location: %d\n",args[cArgs],cArgs);
-                        cArgs++;
-                    }
+                    // int cArgs = 0;
+                    // while (args[cArgs] != NULL)
+                    // {
+                    //     printf("%s is at location: %d\n",args[cArgs],cArgs);
+                    //     cArgs++;
+                    // }
                     
                     //Execute the command
                     execvp(args[0], args);
@@ -240,7 +256,7 @@ int main()
             }
         }
         // Execute the command
-        system(command);
+        //system(command);
         
 
     }
