@@ -85,8 +85,7 @@ int main()
 
             // pipe dex = 1
 
-            int subcount1 = 0;
-            int subcount2 = 0;
+            // int subcount1 = 0;
             if (pipe_used == 1){
             sub_args1 = malloc(sizeof(char *) *pipe_dex);
             sub_args2 = malloc(sizeof(char *) *(i-pipe_dex));
