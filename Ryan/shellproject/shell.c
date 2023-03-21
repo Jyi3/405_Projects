@@ -14,12 +14,6 @@ pid_t child_pid = -1;
 volatile sig_atomic_t interrupted = 0;
 
 void handle_interrupt(int signal) {
-    if (child_pid > 0) {
-        kill(child_pid, SIGINT);
-    } else {
-        printf("\n");
-        exit(0);
-    }
     interrupted = 1;
 }
 
