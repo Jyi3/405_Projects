@@ -20,6 +20,8 @@ int main(int argc, char *argv[]) {
         printf("%c", ch);
     }
 
+    printf(" TEST ");
+
     fclose(fp);
     return 0;
 }

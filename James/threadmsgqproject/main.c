@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "zemaphore.h"
+#include <semaphore.h>
 #include "msgq.h"
 
 // SEE Labs/GdbLldbLab for more information on lldb - lowlevel debugger
