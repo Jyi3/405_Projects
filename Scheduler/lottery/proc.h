@@ -58,5 +58,12 @@ struct proc {
   char ofiles[NFILE];          // Open files
   char cwd[CWD];               // Current directory
   char name[PNAME];            // Process name (debugging)
+  int ticket;                  // number of "tickets" given to a process      !!JAMES!!
+  int stride;                  // number of "strides" given to a process      JOON
+  int cur_stride;              // number of "strides" a process has           JOON
+  int nice;
+  int weight;
+  int timeslice;
+  int vruntime;
 };
 

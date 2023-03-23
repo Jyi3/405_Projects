@@ -10,6 +10,15 @@
 #include "defs.h"
 #include "proc.h"
 
+//!JAMES!
+#define DEFTICKS 50 
+
+#define MAX_NUMBER_OF_STRIDE 10000
+#define DEFSTRIDE 100 
+
+#define latency 100 
+#define granularity 10 
+
 static void wakeup1(int chan);
 
 // Dummy lock routines. Not needed for lab
@@ -107,6 +116,9 @@ userinit(void)
   strcpy(p->name, "userinit"); 
   p->state = RUNNING;
   curr_proc = p;
+  p->ticket=DEFTICKS; //!JAMES!
+  p->stride = DEFSTRIDE; //JOON
+  p->cur_stride = 0; //JOON
   return p->pid;
 }
 
@@ -136,6 +148,9 @@ Fork(int fork_proc_id)
   pid = np->pid;
   np->state = RUNNABLE;
   strcpy(np->name, fork_proc->name);
+  np->ticket=DEFTICKS; //!JAMES!
+  np->nice=0;
+  np->stride=DEFSTRIDE; //JOON
   return pid;
 }
 
@@ -294,30 +309,141 @@ Kill(int pid)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
-void
-scheduler(void)
-{
+//void
+//scheduler(void)
+//{
 // A continous loop in real code
 //  if(first_sched) first_sched = 0;
 //  else sti();
 
-  curr_proc->state = RUNNABLE;
+//  curr_proc->state = RUNNABLE;
 
-  struct proc *p;
+//  struct proc *p;
 
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p == curr_proc || p->state != RUNNABLE)
-      continue;
+//  acquire(&ptable.lock);
+//  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+//    if(p == curr_proc || p->state != RUNNABLE)
+//      continue;
 
     // Switch to chosen process.
-    curr_proc = p;
-    p->state = RUNNING;
-    break;
+//    curr_proc = p;
+//    p->state = RUNNING;
+//    break;
+//  }
+//  release(&ptable.lock);
+
+//}
+
+//!JAMES!
+void 
+l_scheduler(void)
+{
+    curr_proc->state = RUNNABLE;
+
+    struct proc *p;
+    int max = 0;
+    int sum = 0;
+
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        max = max + p->ticket;
+    }
+    int min = 0;
+    int range = max - min + 1;
+    int winner = min + rand() % range;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        sum = sum+p->ticket;
+        if (winner <= sum){
+            curr_proc = p;
+            p->state = RUNNING;
+            break;
+        }
+        release(&ptable.lock);
+    }
+}
+
+void lcfs_scheduler(void)
+{
+  int total_weight = 0;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    p->weight = 1024 / (1+p->nice);
+    total_weight = total_weight + p->weight;
+    release(&ptable.lock);
   }
+  
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    p->timeslice = (p->weight / total_weight) * 1024 * p->granularity;
+    if (winner <= sum){
+        curr_proc = p;
+        p->state = RUNNING;
+        break;
+    }
+    release(&ptable.lock);
+  }
+
+}
+
+void s_scheduler(void)
+{
+
+  struct proc *p;
+  int sum = 0;
+  int cur_max_stride = 0;
+  struct proc *temp = ptable.proc;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+      if (p->pid != NULL && p->state == RUNNABLE)
+      {
+        if (p->cur_stride < MAX_NUMBER_OF_STRIDE)
+        {
+          if (p->cur_stride < temp->cur_stride)
+          {
+            temp = p;
+          }
+        }
+      }
+  }
+
+  if (temp->cur_stride >= MAX_NUMBER_OF_STRIDE && p->state == RUNNABLE)
+  {
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+        if (p->pid != NULL)
+        {
+          p->cur_stride = 0;
+        }
+    }
+  }
+  
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+      if (p->pid != NULL)
+      {
+        if (p->cur_stride < MAX_NUMBER_OF_STRIDE && p->state == RUNNABLE)
+        {
+          if (p->cur_stride < temp->cur_stride)
+          {
+            temp = p;
+          }
+        }
+      }
+  }
+
+
+  temp->cur_stride += temp->stride;
+  curr_proc = temp;
+  temp->state = RUNNING;
   release(&ptable.lock);
 
 }
+             
 
 // Print a process listing to console.  For debugging.
 // Runs when user types ^P on console.
@@ -329,7 +455,42 @@ procdump(void)
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->pid > 0)
-      printf("pid: %d, parent: %d state: %s\n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state]);
+      printf("pid: %d, parent: %d state: %s tickets: %d, nice: %d, weight: %d, timeslice: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state],p->ticket , p->nice, p->weight, p->timeslice);
+      
+      // printf("pid: %d, parent: %d state: %s tickets: %d, stride values: %d, current stride accumulated: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state],p->ticket , p->stride, p->cur_stride);
+}
+void
+add_tickets(int pid, int ticket_num)
+{
+    struct proc *p;
+     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)  
+         if(p->pid == pid)
+             p->ticket = ticket_num;
 }
 
 
+// Joon
+void add_nice(int pid, int nice_num)
+{
+    struct proc *p;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)  
+    {
+      if(p->pid == pid)
+      {
+          p->nice = nice_num;
+      }
+    }
+}
+
+// Joon
+void add_stride(int pid, int stride_num)
+{
+    struct proc *p;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)  
+    {
+      if(p->pid == pid)
+      {
+          p->stride = stride_num;
+      }
+    }
+}

@@ -27,11 +27,13 @@
 //the data structure and places it on the end of the linked list. The data structure has a char*
 //pointer to the message. The heap memory for the message is allocated using strdup.
 //recv_msg removes the head from the linked list and returns the char* pointer to the message.
-typedef struct msgq{
+
+typedef struct msgq
+{
     int num_msgs;
     msg_node *head;
     msg_node *tail;
-}
+} msgq;
 
 
 struct msgq *msgq_init(int num_msgs){
@@ -40,4 +42,6 @@ struct msgq *msgq_init(int num_msgs){
     mq->head = NULL;
     mq->tail = NULL;
     return mq; 
-}
+} 
+
+char *msgq_recv(struct msgq *mq);
