@@ -16,8 +16,9 @@
 #define MAX_NUMBER_OF_STRIDE 10000
 #define DEFSTRIDE 100 
 
-#define latency 100 
-#define granularity 10 
+#define DEFLATENCY 100 
+#define DEFGRANULARITY 10 
+#define DEFNICE 0
 
 static void wakeup1(int chan);
 
@@ -117,6 +118,7 @@ userinit(void)
   p->state = RUNNING;
   curr_proc = p;
   p->ticket=DEFTICKS; //!JAMES!
+  p->nice = DEFNICE; //JOON
   p->stride = DEFSTRIDE; //JOON
   p->cur_stride = 0; //JOON
   return p->pid;
@@ -149,7 +151,7 @@ Fork(int fork_proc_id)
   np->state = RUNNABLE;
   strcpy(np->name, fork_proc->name);
   np->ticket=DEFTICKS; //!JAMES!
-  np->nice=0;
+  np->nice=DEFNICE;
   np->stride=DEFSTRIDE; //JOON
   return pid;
 }
@@ -362,29 +364,45 @@ l_scheduler(void)
     }
 }
 
-void lcfs_scheduler(void)
+void linux_scheduler(void)
 {
+
+  curr_proc->state = RUNNABLE;
+  struct proc *p;
   int total_weight = 0;
+  int latency = DEFLATENCY;
+  int granularity = DEFGRANULARITY;
+  printf("total_weights: %d\n", total_weight);
+
 
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-    p->weight = 1024 / (1+p->nice);
-    total_weight = total_weight + p->weight;
-    release(&ptable.lock);
+    if(p->pid != NULL)
+    {
+      // printf("EXISTS\n");
+      p->weight = 1024 / (2 ^ (p->nice - 1));
+      total_weight = total_weight + p->weight;
+    }
   }
-  
-  acquire(&ptable.lock);
+  printf("total_weights: %d\n",total_weight);
+
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-    p->timeslice = (p->weight / total_weight) * 1024 * p->granularity;
-    if (winner <= sum){
-        curr_proc = p;
-        p->state = RUNNING;
-        break;
+    if(p->pid != NULL)
+    {
+      // printf("EXISTS2!\n");
+      acquire(&ptable.lock);
+      p->timeslice = (p->weight / total_weight) * latency;
+      if (p->timeslice <= granularity)
+      {
+        p->timeslice = granularity;
+      }
+      printf("pid: %d, timeslice: %d\n",p->pid, p->timeslice);
     }
-    release(&ptable.lock);
   }
+
+  printf("total_weights: %d\n", total_weight);
 
 }
 
@@ -452,13 +470,43 @@ void
 procdump(void)
 {
   struct proc *p;
+  int total_weight = 0;
+  int latency = DEFLATENCY;
+  int granularity = DEFGRANULARITY;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->pid != NULL)
+    {
+      // printf("EXISTS\n");
+      p->weight = 1024 / (2 ^ (p->nice - 1));
+      total_weight = total_weight + p->weight;
+    }
+  }
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if(p->pid != NULL)
+    {
+      // printf("EXISTS2!\n");
+      acquire(&ptable.lock);
+      p->timeslice = (p->weight / total_weight) * latency;
+      if (p->timeslice <= granularity)
+      {
+        p->timeslice = granularity;
+      }
+    }
+  }
+
+
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->pid > 0)
-      printf("pid: %d, parent: %d state: %s tickets: %d, nice: %d, weight: %d, timeslice: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state],p->ticket , p->nice, p->weight, p->timeslice);
+      printf("pid: %d, parent: %d state: %s tickets: %d, nice: %d, weight: %d, timeslice: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state], p->ticket, p->nice, p->weight, p->timeslice);
       
-      // printf("pid: %d, parent: %d state: %s tickets: %d, stride values: %d, current stride accumulated: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state],p->ticket , p->stride, p->cur_stride);
 }
+
 void
 add_tickets(int pid, int ticket_num)
 {
@@ -468,22 +516,25 @@ add_tickets(int pid, int ticket_num)
              p->ticket = ticket_num;
 }
 
-
-// Joon
-void add_nice(int pid, int nice_num)
+void 
+add_nice(int pid, int nice_num)
 {
-    struct proc *p;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)  
+  // printf("IN ADD NICE\n");
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)  
+  {
+    // printf("IN ADD NICE FLOOP\n");
+    if(p->pid == pid)
     {
-      if(p->pid == pid)
-      {
-          p->nice = nice_num;
-      }
+      // printf("IN ADD NICE IF STAT\n");
+      p->nice = nice_num;
+      // printf("IN NICE pid: %d and nice: %d\n", p->pid, p->nice);
     }
+  }
 }
 
-// Joon
-void add_stride(int pid, int stride_num)
+void 
+add_stride(int pid, int stride_num)
 {
     struct proc *p;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)  

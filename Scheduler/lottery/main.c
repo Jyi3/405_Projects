@@ -18,8 +18,10 @@ int executeCmd(char** params, int nparams);
 #define MAX_NUMBER_OF_PARAMS 10
 
 //!!JAMES!! updated to add stride
-enum cmds        { FORK=0, SETPID,   SHOWPID,   WAIT,   EXIT,   SLEEP,   WAKEUP,   PS,   SCHEDULE,  TIMER,    HELP,   QUIT, TICKET, NICE, STRIDE };
-char *cmdstr[] = {"fork", "Setpid", "currpid",  "wait", "exit", "sleep", "wakeup", "ps",   "schedule", "timer", "help", "quit", "ticket", "stride"};
+enum cmds { FORK = 0, SETPID, SHOWPID, WAIT, EXIT, SLEEP, WAKEUP, PS, SCHEDULE, TIMER, HELP, QUIT, TICKET, NICE, STRIDE };
+char* cmdstr[] = { "fork", "Setpid", "currpid", "wait", "exit", "sleep", "wakeup", "ps", "schedule", "timer", "help", "quit", "ticket", "nice", "stride" };
+
+
 
 int curr_proc_id = 0;
 
@@ -35,8 +37,9 @@ int stride_scheduler() {
     return p->pid;
 }
 
-int LCFS_scheduler() {
-    lcfs_scheduler();
+int lcfs_scheduler() 
+{
+    linux_scheduler();
     struct proc *p = curr_proc;
     return p->pid;
 }
@@ -92,7 +95,6 @@ int executeCmd(char** params, int nparams)
             pid = atoi(params[1]);
         else
             pid = curr_proc->pid;
-            curr_proc->nice = 0;
         int fpid = Fork(pid);
         printf("pid: %d forked: %d\n", pid, fpid);
         break;
@@ -169,9 +171,9 @@ int executeCmd(char** params, int nparams)
                 printf("Stride scheduler selected pid: %d\n", pid);
                 break;
             }
-            if (strcmp(scheduler_name, "LCFS") == 0) 
+            if (strcmp(scheduler_name, "lcfs") == 0) 
             {
-                pid = LCFS_scheduler();
+                pid = lcfs_scheduler();
                 printf("LCFS scheduler selected pid: %d\n", pid);
                 break;
             }
@@ -212,8 +214,8 @@ int executeCmd(char** params, int nparams)
                 }
                 break;
             }
-            if (strcmp(scheduler_name, "LCFS") == 0) {
-                pid = lottery_scheduler();
+            if (strcmp(scheduler_name, "lcfs") == 0) {
+                pid = lcfs_scheduler();
                 printf("LCFS scheduler selected pid: %d\n", pid);
                 break;
             } 
@@ -246,19 +248,20 @@ int executeCmd(char** params, int nparams)
         }
         break;
     case NICE: 
+        // printf("NICE CATCH!\n");
         if (nparams < 3)
-        {
             printf("try again\n");
-        }
         else 
         {
+            // printf("NICE ELSE CATCH!\n");
             int pid = atoi(params[1]);
             int nice_num = atoi(params[2]);
+            // printf("IN NICE pid: %d and nice_num: %d\n", pid, nice_num);
             add_nice(pid, nice_num);
         }
         break;
     case STRIDE:
-        if (nparams < 3)
+        if (nparams != 3)
         {
             printf("try again\n");
         }

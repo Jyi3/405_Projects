@@ -13,11 +13,12 @@ void            pinit(void);
 void            procdump(void);
 void            l_scheduler(void);
 void            s_scheduler(void);
+void            linux_scheduler(void);
 int             userinit(void);
 int             Wait(int);
 int             Sleep(int, int);
 void            Wakeup(int);    
 void            add_tickets(int,int); //!JAMES!
-void            add_stride(int,int);  //JOON
 void            add_nice(int,int);  //JOON
+void            add_stride(int,int);  //JOON
 
