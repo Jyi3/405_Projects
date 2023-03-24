@@ -43,7 +43,8 @@ void *recvMsgs(void *arg) {
 }
 
 void *passiton(void *arg) {
-    int me = (int) arg;
+    int* me_ptr = (int*) arg;
+    int me = *me_ptr;
     while (1) {
         sleep(1);
         printf("passiton%d initial msgq_len: %d\n", me, msgq_len(mq));
