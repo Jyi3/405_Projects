@@ -27,18 +27,15 @@
 //the data structure and places it on the end of the linked list. The data structure has a char*
 //pointer to the message. The heap memory for the message is allocated using strdup.
 //recv_msg removes the head from the linked list and returns the char* pointer to the message.
-<<<<<<< HEAD
 typedef struct msg_node{
     char *message;
     struct msg_node *next;
-}
-typedef struct msgq{
-=======
+}msg_node;
 
 typedef struct msgq
 {
->>>>>>> 361e4e5a732b07a19765a93afb8531f4f09a6e36
     int num_msgs;
+    int total_msgs = 0;
     msg_node *head;
     msg_node *tail;
 } msgq;
@@ -50,7 +47,6 @@ struct msgq *msgq_init(int num_msgs){
     mq->head = NULL;
     mq->tail = NULL;
     return mq; 
-<<<<<<< HEAD
 }
 
 int msgq_send(struct msgq *mq, char *msg){
@@ -60,11 +56,17 @@ int msgq_send(struct msgq *mq, char *msg){
     if (mq == NULL || msg == NULL){
         return -1;
     }
-    char *copy = malloc(strlen(msg));
+
+    char *copy = malloc(strlen(msg) + 1);
     if (copy == NULL) {
         return -1;
     }
     strcpy(copy, msg);
+    while (mq->total_msgs == mq->num_msgs){
+        //do nothing(block) if the msgq is full
+    }
+    sem_wait(&mq->lock);   
+
 
     msg_node *node = malloc(sizeof(msg_node));
     node->message = copy;
@@ -75,11 +77,10 @@ int msgq_send(struct msgq *mq, char *msg){
         mq->tail->next = node;
     }
     mq->tail = node;
+    mq->total_msgs ++;
+    sem_post(&mq->lock); 
     return 1;
 
 }
-=======
-} 
 
 char *msgq_recv(struct msgq *mq);
->>>>>>> 361e4e5a732b07a19765a93afb8531f4f09a6e36
