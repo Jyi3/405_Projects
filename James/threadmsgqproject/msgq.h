@@ -84,3 +84,9 @@ int msgq_send(struct msgq *mq, char *msg){
 }
 
 char *msgq_recv(struct msgq *mq);
+
+
+int msgq_len(struct msgq *mq){
+    int msgq_len = mq->total_msgs;
+    return msgq_len;
+}
