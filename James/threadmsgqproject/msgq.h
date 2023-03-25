@@ -156,7 +156,7 @@ int msgq_len(struct msgq *mq){
     /* Acquire the lock to access the message queue */
     sem_wait(&mq->lock);
 
-    int len = mq->num_msgs;
+    int len = mq->total_msgs;
 
     /* Release the lock */
     sem_post(&mq->lock);

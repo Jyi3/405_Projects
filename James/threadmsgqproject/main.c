@@ -24,6 +24,8 @@ void *promtAndSend(void *arg) {
         if (response[0] == 'y' || response[0] == 'Y') {
             printf("sending: %s\n", messages[i]);
             msgq_send(mq, messages[i]);
+            int length  = msgq_len(mq);
+            printf("%d\n", length);
         }
     }
     return NULL;
@@ -84,10 +86,15 @@ int main(int argc, char *argv[]) {
         pthread_join(p1, NULL);
         printf("msgq_show() after filling for test 2:\n");
         msgq_show(mq);
+        printf("james1\n");
         pthread_create(&p1, NULL, passiton, (void *)1);
+        printf("james2\n");
         pthread_create(&p2, NULL, passiton, (void *)2);
+        printf("james3\n");
         pthread_join(p1, NULL);
+        printf("james4\n");
         pthread_join(p2, NULL);
+        printf("james5\n");
         break;
       default:
         printf("invalid test selection!\n");
