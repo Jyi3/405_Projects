@@ -71,12 +71,19 @@ int msgq_send(struct msgq *mq, char *msg){
     sem_wait(&mq->lock);   
 
     while (mq->total_msgs == mq->num_msgs){
+        printf("waiting for open msg slot\n");
         sem_post(&mq->lock);    /* Release the lock */
         sem_wait(&mq->has_msgs); /* Wait for a message to be removed */
         sem_wait(&mq->lock);    /* Acquire the lock again */
     }
 
     msg_node *node = malloc(sizeof(msg_node));
+    //checks return value of malloc
+//    if (node == NULL){
+  //      free(copy);
+  //      sem_post(&mq->lock);
+   //     return -1;
+    //}
     node->message = copy;
     node->next = NULL;
     if (mq->head == NULL){
@@ -110,6 +117,7 @@ char *msgq_recv(struct msgq *mq)
     /* Wait until there is at least one message in the queue */
     while (mq->num_msgs == 0) 
     {
+        printf("waiting for msg slot to be filled\n");
         sem_post(&mq->lock);    /* Release the lock */
         sem_wait(&mq->has_msgs); /* Wait for a message to be added */
         sem_wait(&mq->lock);    /* Acquire the lock again */

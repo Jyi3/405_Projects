@@ -91,11 +91,18 @@ int main(int argc, char *argv[]) {
         printf("james2\n");
         pthread_create(&p2, NULL, passiton, (void *)2);
         printf("james3\n");
-        pthread_join(p1, NULL);
+        pthread_join(p1,NULL);
         printf("james4\n");
-        pthread_join(p2, NULL);
+        pthread_join(p2,NULL);
         printf("james5\n");
         break;
+      case '3':
+        printf("tests for msgq_send block\n");
+        pthread_create(&p1, NULL, msgq_send(mq, messages[0]), NULL);
+        pthread_join(p1, NULL);
+        break;
+
+
       default:
         printf("invalid test selection!\n");
         break;
