@@ -14,6 +14,7 @@ struct msgq *mq;
 // Main threads
 //
 char *messages[] = { "msg1", "msg2", "hellomsg", "gustymsg" };
+char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49","msg50","msg51","msg52","msg53","msg54","msg55","msg56","msg57","msg58","msg59","msg60","msg61","msg62","msg63","msg64","msg65","msg66","msg67","msg68","msg69","msg70","msg71","msg72","msg73","msg74","msg75","msg76","msg77","msg78","msg79","msg80","msg81","msg82","msg83","msg84","msg85","msg86","msg87","msg88","msg89","msg90","msg91","msg92","msg93","msg94","msg95","msg96","msg97","msg98","msg99","msg100"};
 
 // sends msgs in messages[]
 void *promtAndSend(void *arg) {
@@ -30,6 +31,17 @@ void *promtAndSend(void *arg) {
     }
     return NULL;
 }
+// sends msgs in messages2[]
+void *send2(void *arg) {
+    for (int i = 0; i < sizeof(messages2)/sizeof(messages2[0]); i++) {
+            printf("sending: %s\n", messages2[i]);
+            msgq_send(mq, messages2[i]);
+//            int length  = msgq_len(mq);
+//            printf("%d\n", length);
+        }
+    return NULL;
+}
+
 
 // consume messges in msgq
 void *recvMsgs(void *arg) {
@@ -60,10 +72,10 @@ void *passiton(void *arg) {
     return NULL;
 }
 
-#define MSGQLEN 4
+#define MSGQLEN 105
 
 int main(int argc, char *argv[]) {
-    pthread_t p1, p2;
+    pthread_t p1, p2, p3, p4, p5;
     mq = msgq_init(MSGQLEN);
     char test = '1';
     if (argc == 2)
@@ -97,9 +109,12 @@ int main(int argc, char *argv[]) {
         printf("james5\n");
         break;
       case '3':
-        printf("tests for msgq_send block \n");
-        pthread_create(&p1, NULL, msgq_send(mq, messages[0]), NULL);
-        pthread_join(p1, NULL);
+        printf("producer comsumer\n");
+        pthread_create(&p1 ,NULL,send2, NULL);
+        pthread_create(&p2, NULL, send2, NULL);
+        pthread_create(&p3, NULL, recvMsgs, NULL);
+        pthread_create(&p4, NULL, recvMsgs, NULL);
+        pthread_create(&p5, NULL, recvMsgs, NULL);
         break;
 
 
