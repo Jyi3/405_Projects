@@ -112,18 +112,18 @@ int main(int argc, char *argv[]) {
         printf("james5\n");
         break;
       case '3':
-        mq = msgq_init(sizeof(messages2)*3);
+        //mq = msgq_init(sizeof(messages2)*3);
         printf("producer comsumer\n");
-        pthread_create(&p1 ,NULL,send2, NULL);
-        pthread_join(p1, NULL);
+        pthread_create(&p1 ,NULL, send2, NULL);
         pthread_create(&p2, NULL, send2, NULL);
+        pthread_create(&p3, NULL, recvMsgs, NULL);
+        pthread_create(&p4, NULL, recvMsgs, NULL);
+        pthread_create(&p5, NULL, recvMsgs, NULL);
+        pthread_join(p1, NULL);
         pthread_join(p2, NULL);
         sleep(5);
-        pthread_create(&p3, NULL, recvMsgs, NULL);
         pthread_join(p3, NULL);
-        pthread_create(&p4, NULL, recvMsgs, NULL);
         pthread_join(p4, NULL);
-        pthread_create(&p5, NULL, recvMsgs, NULL);
         pthread_join(p5, NULL);
         break;
 
