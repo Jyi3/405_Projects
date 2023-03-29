@@ -117,7 +117,7 @@ char *msgq_recv(struct msgq *mq)
     /* Wait until there is at least one message in the queue */
     while (mq->num_msgs == 0) 
     {
-        printf("waiting for msg slot to be filled\n");
+        // printf("waiting for msg slot to be filled\n");
         sem_post(&mq->lock);    /* Release the lock */
         sem_wait(&mq->has_msgs); /* Wait for a message to be added */
         sem_wait(&mq->lock);    /* Acquire the lock again */
