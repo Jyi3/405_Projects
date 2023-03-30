@@ -43,8 +43,8 @@ void *send2(void *arg) {
     for (int i = 0; i < sizeof(messages2)/sizeof(messages2[0]); i++) {
             printf("sending: %s\n", messages2[i]);
             msgq_send(mq, messages2[i]);
-//            int length  = msgq_len(mq);
-//            printf("%d\n", length);
+   //         int length  = msgq_len(mq);
+   //         printf("%d\n", length);
         }
     return NULL;
 }
@@ -69,10 +69,12 @@ void *recvAndWrite(void *arg){
     int msg_count = msgq_len(mq);
     for (int i = 0; i < msg_count; i++){
         char *m = msgq_recv(mq);
-        array[count] = malloc(strlen(m) + 1);
-        strcpy(array[count], m);
-//        printf("test %s\n", array[count]);
-        count++;
+        if (m != NULL){
+                array[count] = malloc(strlen(m) + 1);
+                strcpy(array[count], m);
+                printf("test %s\n", array[count]);
+                count++;
+        }
     }
     return NULL;    
 }
@@ -143,6 +145,7 @@ int main(int argc, char *argv[]) {
         pthread_join(p1, NULL);
         pthread_join(p2, NULL);
         printf("stop1\n");
+        sleep(5);
         //the last argument in the create thread function is the array the thread is to write to cast to void to meet parameters
         pthread_create(&p3, NULL, recvAndWrite, (void *)c1);
         printf("stop2\n");
@@ -151,14 +154,26 @@ int main(int argc, char *argv[]) {
         pthread_create(&p5, NULL, recvAndWrite, (void *)c3);
         printf("stop4\n");
         sleep(5);
-        for (int i = 0; i < sizeof(c1) / sizeof(char *); i++){
-            printf("C1 %s\n", c1[i]);
+        int c1size = sizeof(c1)/8;
+        printf("%d\n", c1size);
+       // printf("%d\n", sizeof(c2));
+       // printf("%d\n", sizeof(c3));
+        for (int i = 0; i < sizeof(c1)/8; i++){
+            if (c1[i] != NULL && c1[i] != ""){
+                printf("C1: %s i is:%d\n", c1[i], i);
+            }
         }
-        for (int i = 0; i < sizeof(c2) / sizeof(char *); i++){
-            printf("C2 %s\n", c2[i]);
+        printf("c2 starts\n");
+        for (int i = 0; i < sizeof(c2)/8; i++){
+            if (c2[i] != NULL && c2[i] != ""){
+                printf("C2 %s\n", c2[i]);
+            }
         }
-        for (int i = 0; i < sizeof(c3) / sizeof(char *); i++){
-            printf("C3 %s\n", c3[i]);
+        printf("c3 starts\n");
+        for (int i = 0; i < sizeof(c3)/8; i++){
+            if (c3[i] != NULL && c3[i] != ""){
+                printf("C3 %s\n", c3[i]);
+            }
         }
 
 //        pthread_join(p3, NULL);
