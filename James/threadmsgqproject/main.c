@@ -63,6 +63,21 @@ void *recvMsgs(void *arg) {
     return NULL;
 }
 
+void *recvAndWrite(void *arg){
+    char** array = (char**)arg;
+    int count = 0;
+    int msg_count = msgq_len(mq);
+    for (int i = 0; i < msg_count; i++){
+        char *m = msgq_recv(mq);
+        array[count] = malloc(strlen(m) + 1);
+        strcpy(array[count], m);
+//        printf("test %s\n", array[count]);
+        count++;
+    }
+    return NULL;    
+}
+
+
 void *passiton(void *arg) {
     int* me_ptr = (int*) arg;
     int me = *me_ptr;
@@ -80,8 +95,12 @@ void *passiton(void *arg) {
 }
 
 #define MSGQLEN 100
+#define ARRAYLEN 100
 
 int main(int argc, char *argv[]) {
+    char *c1[ARRAYLEN];
+    char *c2[ARRAYLEN];
+    char *c3[ARRAYLEN];
     pthread_t p1, p2, p3, p4, p5;
     mq = msgq_init(MSGQLEN);
     char test = '1';
@@ -116,43 +135,52 @@ int main(int argc, char *argv[]) {
         printf("james5\n");
         break;
       case '3':
-<<<<<<< HEAD
         //mq = msgq_init(sizeof(messages2)*3);
-=======
         mq = msgq_init(MSGQLEN);
->>>>>>> 5be0e3722a05d3667ef06622a6ffe12cc5b5801f
         printf("producer comsumer\n");
         pthread_create(&p1 ,NULL, send2, NULL);
         pthread_create(&p2, NULL, send2, NULL);
-        pthread_create(&p3, NULL, recvMsgs, NULL);
-        pthread_create(&p4, NULL, recvMsgs, NULL);
-        pthread_create(&p5, NULL, recvMsgs, NULL);
         pthread_join(p1, NULL);
         pthread_join(p2, NULL);
+        printf("stop1\n");
+        pthread_create(&p3, NULL, recvAndWrite, (void *)c1);
+        printf("stop2\n");
+        pthread_create(&p4, NULL, recvAndWrite, (void *)c2);
+        printf("stop3\n");
+        pthread_create(&p5, NULL, recvAndWrite, (void *)c3);
+        printf("stop4\n");
         sleep(5);
-<<<<<<< HEAD
-        pthread_join(p3, NULL);
-        pthread_join(p4, NULL);
-        pthread_join(p5, NULL);
-=======
-
-        #define NUM_THREADS 3
-
-        pthread_t threads[NUM_THREADS];
-        int args[NUM_THREADS][2];
-
-        int counter = 1;
-
-        printf("length of array: %d\n", msgq_len(mq));
-
-        if (counter > 3)
-        {
-            counter = 1;
+        for (int i = 0; i < sizeof(c1) / sizeof(char *); i++){
+            printf("C1 %s\n", c1[i]);
         }
-        printf("counter: %d printing : ", counter);
-        pthread_create(&threads[counter], NULL, recvMsgs, NULL);
-        pthread_join(threads[counter], NULL);
-        printf("length of array: %d\n", msgq_len(mq));
+        for (int i = 0; i < sizeof(c2) / sizeof(char *); i++){
+            printf("C2 %s\n", c2[i]);
+        }
+        for (int i = 0; i < sizeof(c3) / sizeof(char *); i++){
+            printf("C3 %s\n", c3[i]);
+        }
+
+//        pthread_join(p3, NULL);
+//        pthread_join(p4, NULL);
+//        pthread_join(p5, NULL);
+
+//        #define NUM_THREADS 3
+
+//        pthread_t threads[NUM_THREADS];
+//        int args[NUM_THREADS][2];
+
+//        int counter = 1;
+
+//        printf("length of array: %d\n", msgq_len(mq));
+
+  //      if (counter > 3)
+  //      {
+    //        counter = 1;
+    //    }
+      //  printf("counter: %d printing : ", counter);
+     //   pthread_create(&threads[counter], NULL, recvMsgs, NULL);
+      //  pthread_join(threads[counter], NULL);
+       // printf("length of array: %d\n", msgq_len(mq));
 
         // while(msgq_len > 0)
         // {
@@ -169,7 +197,6 @@ int main(int argc, char *argv[]) {
         // {
         //     pthread_join(threads[i], NULL);
         // }
->>>>>>> 5be0e3722a05d3667ef06622a6ffe12cc5b5801f
         break;
 
 
@@ -178,5 +205,6 @@ int main(int argc, char *argv[]) {
         break;
     }
     return 0;
+
 }
 
