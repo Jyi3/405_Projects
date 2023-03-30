@@ -62,9 +62,9 @@ void *recvMsgs(void *arg) {
     }
     return NULL;
 }
-
+//recieves msg from mq. writes to an array
 void *recvAndWrite(void *arg){
-    char** array = (char**)arg;
+    char** array = (char**)arg;// cast array from void to char
     int count = 0;
     int msg_count = msgq_len(mq);
     for (int i = 0; i < msg_count; i++){
@@ -98,9 +98,9 @@ void *passiton(void *arg) {
 #define ARRAYLEN 100
 
 int main(int argc, char *argv[]) {
-    char *c1[ARRAYLEN];
-    char *c2[ARRAYLEN];
-    char *c3[ARRAYLEN];
+    char *c1[ARRAYLEN];//array for consumer 1
+    char *c2[ARRAYLEN];//array for consumer 2
+    char *c3[ARRAYLEN];//array for consumer 3
     pthread_t p1, p2, p3, p4, p5;
     mq = msgq_init(MSGQLEN);
     char test = '1';
@@ -143,6 +143,7 @@ int main(int argc, char *argv[]) {
         pthread_join(p1, NULL);
         pthread_join(p2, NULL);
         printf("stop1\n");
+        //the last argument in the create thread function is the array the thread is to write to cast to void to meet parameters
         pthread_create(&p3, NULL, recvAndWrite, (void *)c1);
         printf("stop2\n");
         pthread_create(&p4, NULL, recvAndWrite, (void *)c2);
