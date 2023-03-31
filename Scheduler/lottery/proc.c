@@ -9,6 +9,7 @@
 #include "types.h"
 #include "defs.h"
 #include "proc.h"
+#include <stdint.h>
 
 //!JAMES!
 #define DEFTICKS 50 
@@ -99,8 +100,9 @@ found:
 
   p->context = (struct context*)malloc(sizeof(struct context));
   memset(p->context, 0, sizeof *p->context);
-  p->context->pc = (uint)forkret;
-  p->context->lr = (uint)trapret;
+  p->context->pc = (uintptr_t)forkret;
+  p->context->lr = (uintptr_t)trapret;
+
 
   return p;
 }
@@ -374,13 +376,12 @@ void linux_scheduler(void)
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-    if(p->pid != NULL)
+    if(p->pid != 0)
     {
-      // printf("EXISTS\n");
       p->weight = 1024 / (2 ^ (p->nice - 1));
-      if (p->weight <0 )
+      if (p->weight < 0 )
       {
-        total_weight = total_weight + (p->weight*(-1));
+        total_weight = total_weight + (p->weight * (-1));
       }
       else
       {
@@ -389,43 +390,63 @@ void linux_scheduler(void)
     }
   }
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  struct proc *start = curr_proc;
+  struct proc *next = start + 1;
+  struct proc *selected = NULL;
+
+  do
   {
-    if(p->pid != NULL)
+    if(next >= &ptable.proc[NPROC])
     {
-      // printf("EXISTS2!\n");
-      if (p->weight < 0 )
+      next = ptable.proc;
+    }
+
+    if(next->pid != 0 && next->state == RUNNABLE)
+    {
+      if (next->weight < 0)
       {
-        p->timeslice = ((p->weight*(-1)) / total_weight) * latency;
+        next->timeslice = ((next->weight * (-1)) / total_weight) * latency;
       }
       else
       {
-        p->timeslice = (p->weight / total_weight) * latency;
+        next->timeslice = (next->weight / total_weight) * latency;
       }
-      if (p->timeslice <= granularity)
-      {
-        p->timeslice = granularity;
-      }
-    }
-  }
 
-  
+      if (next->timeslice <= granularity)
+      {
+        next->timeslice = granularity;
+      }
+
+      selected = next;
+      break;
+    }
+
+    next++;
+
+  } while (next != start);
+
+  if (selected != NULL)
+  {
+    curr_proc = selected;
+    curr_proc->state = RUNNING;
+  }
 
   procdump();
 }
+
 
 void s_scheduler(void)
 {
 
   struct proc *p;
-  int sum = 0;
-  int cur_max_stride = 0;
+  // int sum = 0;
+  // int cur_max_stride = 0;
   struct proc *temp = ptable.proc;
 
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-      if (p->pid != NULL && p->state == RUNNABLE)
+      if (p->pid != 0 && p->state == RUNNABLE)
       {
         if (p->cur_stride < MAX_NUMBER_OF_STRIDE)
         {
@@ -441,7 +462,7 @@ void s_scheduler(void)
   {
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     {
-        if (p->pid != NULL)
+        if (p->pid != 0)
         {
           p->cur_stride = 0;
         }
@@ -450,7 +471,7 @@ void s_scheduler(void)
   
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-      if (p->pid != NULL)
+      if (p->pid != 0)
       {
         if (p->cur_stride < MAX_NUMBER_OF_STRIDE && p->state == RUNNABLE)
         {
@@ -484,7 +505,7 @@ procdump(void)
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-    if(p->pid != NULL)
+    if(p->pid != 0)
     {
       // printf("EXISTS\n");
       p->weight = 1024 / (2 ^ (p->nice - 1));
@@ -501,7 +522,7 @@ procdump(void)
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-    if(p->pid != NULL)
+    if(p->pid != 0)
     {
       // printf("EXISTS2!\n");
       acquire(&ptable.lock);

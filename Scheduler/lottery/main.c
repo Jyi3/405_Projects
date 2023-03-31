@@ -203,6 +203,7 @@ int executeCmd(char** params, int nparams)
                 for (int i = 0; i < quantums; i++) {
                     pid = lottery_scheduler();
                     printf("Lottery scheduler selected pid: %d\n", pid);
+                    sleep(2);
                 }
                 break;
             }
@@ -215,8 +216,12 @@ int executeCmd(char** params, int nparams)
                 break;
             }
             if (strcmp(scheduler_name, "lcfs") == 0) {
-                pid = lcfs_scheduler();
-                printf("LCFS scheduler selected pid: %d\n", pid);
+                int quantums = atoi(params[1]);
+                for (int i = 0; i < quantums; i++) {
+                    pid = lcfs_scheduler();
+                    printf("LCFS scheduler selected pid: %d\n", pid);
+                    sleep(2);
+                }
                 break;
             } 
             else {
