@@ -10,6 +10,14 @@
     #include "zemaphore.h"
 #endif
 
+#define MSGQLEN 200
+#define ARRAYLEN 200
+#define DEFMESSAGES 100
+#define DEFPRODUCERS 2
+#define DEFCONSUMERS 3
+
+pthread_mutex_t mq_mutex;
+
 // SEE Labs/GdbLldbLab for more information on lldb - lowlevel debugger
 
 struct msgq *mq;
@@ -18,9 +26,9 @@ struct msgq *mq;
 // Main threads
 //
 char *messages[] = { "msg1", "msg2", "hellomsg", "gustymsg" };
-//char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49","msg50","msg51","msg52","msg53","msg54","msg55","msg56","msg57","msg58","msg59","msg60","msg61","msg62","msg63","msg64","msg65","msg66","msg67","msg68","msg69","msg70","msg71","msg72","msg73","msg74","msg75","msg76","msg77","msg78","msg79","msg80","msg81","msg82","msg83","msg84","msg85","msg86","msg87","msg88","msg89","msg90","msg91","msg92","msg93","msg94","msg95","msg96","msg97","msg98","msg99","msg100"};
+char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49","msg50","msg51","msg52","msg53","msg54","msg55","msg56","msg57","msg58","msg59","msg60","msg61","msg62","msg63","msg64","msg65","msg66","msg67","msg68","msg69","msg70","msg71","msg72","msg73","msg74","msg75","msg76","msg77","msg78","msg79","msg80","msg81","msg82","msg83","msg84","msg85","msg86","msg87","msg88","msg89","msg90","msg91","msg92","msg93","msg94","msg95","msg96","msg97","msg98","msg99","msg100"};
 
-char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49", "msg50"};
+// char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49", "msg50"};
 
 
 // sends msgs in messages[]
@@ -41,11 +49,11 @@ void *promtAndSend(void *arg) {
 // sends msgs in messages2[]
 void *send2(void *arg) {
     for (int i = 0; i < sizeof(messages2)/sizeof(messages2[0]); i++) {
-            printf("sending: %s\n", messages2[i]);
-            msgq_send(mq, messages2[i]);
-   //         int length  = msgq_len(mq);
-   //         printf("%d\n", length);
-        }
+        printf("sending: %s\n", messages2[i]);
+        pthread_mutex_lock(&mq_mutex);
+        msgq_send(mq, messages2[i]);
+        pthread_mutex_unlock(&mq_mutex);
+    }
     return NULL;
 }
 
@@ -63,20 +71,22 @@ void *recvMsgs(void *arg) {
     return NULL;
 }
 //recieves msg from mq. writes to an array
-void *recvAndWrite(void *arg){
-    char** array = (char**)arg;// cast array from void to char
+void *recvAndWrite(void *arg) {
+    char** array = (char**)arg;
     int count = 0;
+    pthread_mutex_lock(&mq_mutex);
     int msg_count = msgq_len(mq);
-    for (int i = 0; i < msg_count; i++){
+    pthread_mutex_unlock(&mq_mutex);
+    for (int i = 0; i < msg_count; i++) {
+        pthread_mutex_lock(&mq_mutex);
         char *m = msgq_recv(mq);
-        if (m != NULL){
-                array[count] = malloc(strlen(m) + 1);
-                strcpy(array[count], m);
-                printf("test %s\n", array[count]);
-                count++;
-        }
+        pthread_mutex_unlock(&mq_mutex);
+        array[count] = malloc(strlen(m) + 1);
+        strcpy(array[count], m);
+        //msgq_show(mq);
+        count++;
     }
-    return NULL;    
+    return NULL;
 }
 
 
@@ -96,13 +106,11 @@ void *passiton(void *arg) {
     return NULL;
 }
 
-#define MSGQLEN 100
-#define ARRAYLEN 100
 
 int main(int argc, char *argv[]) {
-    char *c1[ARRAYLEN];//array for consumer 1
-    char *c2[ARRAYLEN];//array for consumer 2
-    char *c3[ARRAYLEN];//array for consumer 3
+    char *c1[ARRAYLEN] = {NULL};//array for consumer 1
+    char *c2[ARRAYLEN] = {NULL};//array for consumer 2
+    char *c3[ARRAYLEN] = {NULL};//array for consumer 3
     pthread_t p1, p2, p3, p4, p5;
     mq = msgq_init(MSGQLEN);
     char test = '1';
@@ -138,8 +146,10 @@ int main(int argc, char *argv[]) {
         break;
       case '3':
         //mq = msgq_init(sizeof(messages2)*3);
-        mq = msgq_init(MSGQLEN);
+        mq = msgq_init(DEFPRODUCERS*DEFMESSAGES);
+        // mq = msgq_init(MSGQLEN);
         printf("producer comsumer\n");
+        pthread_mutex_init(&mq_mutex, NULL);
         pthread_create(&p1 ,NULL, send2, NULL);
         pthread_create(&p2, NULL, send2, NULL);
         pthread_join(p1, NULL);
@@ -153,28 +163,27 @@ int main(int argc, char *argv[]) {
         printf("stop3\n");
         pthread_create(&p5, NULL, recvAndWrite, (void *)c3);
         printf("stop4\n");
-        sleep(5);
-        int c1size = sizeof(c1)/8;
-        printf("%d\n", c1size);
-       // printf("%d\n", sizeof(c2));
-       // printf("%d\n", sizeof(c3));
-        for (int i = 0; i < sizeof(c1)/8; i++){
-            if (c1[i] != NULL && c1[i] != ""){
-                printf("C1: %s i is:%d\n", c1[i], i);
+        printf("MQ len : %d\n", msgq_len(mq));
+        for (int i = 0; i < sizeof(c1) / sizeof(c1[0]); i++) 
+        {
+            
+            if (c1[i] != NULL) {
+                printf("C1 %s\n", c1[i]);
             }
         }
-        printf("c2 starts\n");
-        for (int i = 0; i < sizeof(c2)/8; i++){
-            if (c2[i] != NULL && c2[i] != ""){
+
+        for (int i = 0; i < sizeof(c2) / sizeof(c2[0]); i++) {
+            if (c2[i] != NULL) { 
                 printf("C2 %s\n", c2[i]);
             }
         }
-        printf("c3 starts\n");
-        for (int i = 0; i < sizeof(c3)/8; i++){
-            if (c3[i] != NULL && c3[i] != ""){
+
+        for (int i = 0; i < sizeof(c3) / sizeof(c3[0]); i++) {
+            if (c3[i] != NULL) {
                 printf("C3 %s\n", c3[i]);
             }
         }
+
 
 //        pthread_join(p3, NULL);
 //        pthread_join(p4, NULL);
