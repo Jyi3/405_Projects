@@ -200,26 +200,45 @@ int executeCmd(char** params, int nparams)
             }
             if (strcmp(scheduler_name, "lottery") == 0) {
                 int quantums = atoi(params[1]);
+                printf("------------------------------------\n");
                 for (int i = 0; i < quantums; i++) {
+                    printf("Current proc pid: %d set to RUNNABLE from running\n", pid);
                     pid = lottery_scheduler();
                     printf("Lottery scheduler selected pid: %d\n", pid);
+                    if (i < quantums)
+                    {
+                        printf("------------------------------------\n");
+                    }
                     sleep(2);
                 }
                 break;
             }
             if (strcmp(scheduler_name, "stride") == 0) {
                 int quantums = atoi(params[1]);
+                printf("------------------------------------\n");
                 for (int i = 0; i < quantums; i++) {
+                    printf("Current proc pid: %d set to RUNNABLE from running\n", pid);
                     pid = stride_scheduler();
                     printf("Stride scheduler selected pid: %d\n", pid);
+                    if (i < quantums)
+                    {
+                        printf("------------------------------------\n");
+                    }
+                    sleep(2);
                 }
                 break;
             }
             if (strcmp(scheduler_name, "lcfs") == 0) {
                 int quantums = atoi(params[1]);
+                printf("------------------------------------\n");
                 for (int i = 0; i < quantums; i++) {
+                    printf("Current proc pid: %d set to RUNNABLE from running\n", pid);
                     pid = lcfs_scheduler();
                     printf("LCFS scheduler selected pid: %d\n", pid);
+                    if (i < quantums)
+                    {
+                        printf("------------------------------------\n");
+                    }
                     sleep(2);
                 }
                 break;
