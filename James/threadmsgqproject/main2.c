@@ -2,54 +2,34 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <semaphore.h>
 #include "msgq.h"
 
+#ifdef _WIN32
+    #include <semaphore.h>
+#elif __APPLE__
+    #include "zemaphore.h"
+#endif
+
 #define MSGQLEN 100
-#define NUM_MESSAGES 50
-#define NUM_PRODUCERS 2
-#define NUM_CONSUMERS 3
+#define ARRAYLEN 100
+#define DEFMESSAGES 50
+#define DEFPRODUCERS 2
+#define DEFCONSUMERS 3
+
+pthread_mutex_t mq_mutex;
+
+// SEE Labs/GdbLldbLab for more information on lldb - lowlevel debugger
 
 struct msgq *mq;
-
 
 //
 // Main threads
 //
 char *messages[] = { "msg1", "msg2", "hellomsg", "gustymsg" };
-char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49","msg50","msg51","msg52","msg53","msg54","msg55","msg56","msg57","msg58","msg59","msg60","msg61","msg62","msg63","msg64","msg65","msg66","msg67","msg68","msg69","msg70","msg71","msg72","msg73","msg74","msg75","msg76","msg77","msg78","msg79","msg80","msg81","msg82","msg83","msg84","msg85","msg86","msg87","msg88","msg89","msg90","msg91","msg92","msg93","msg94","msg95","msg96","msg97","msg98","msg99","msg100"};
+//char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49","msg50","msg51","msg52","msg53","msg54","msg55","msg56","msg57","msg58","msg59","msg60","msg61","msg62","msg63","msg64","msg65","msg66","msg67","msg68","msg69","msg70","msg71","msg72","msg73","msg74","msg75","msg76","msg77","msg78","msg79","msg80","msg81","msg82","msg83","msg84","msg85","msg86","msg87","msg88","msg89","msg90","msg91","msg92","msg93","msg94","msg95","msg96","msg97","msg98","msg99","msg100"};
 
-// char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49", "msg50"};
+char *messages2[] = {"msg1","msg2","msg3","msg4","msg5","msg6","msg7","msg8","msg9","msg10","msg11","msg12","msg13","msg14","msg15","msg16","msg17","msg18","msg19","msg20","msg21","msg22","msg23","msg24","msg25","msg26","msg27","msg28","msg29","msg30","msg31","msg32","msg33","msg34","msg35","msg36","msg37","msg38","msg39","msg40","msg41","msg42","msg43","msg44","msg45","msg46","msg47","msg48","msg49", "msg50"};
 
-static char *consumer_buffers[3][NUM_MESSAGES];
-
-void *producer(void *arg) 
-{
-    int producer_id = *((int *) arg);
-    for (int i = 0; i < NUM_MESSAGES; i++) {
-        char *message = messages2[i % (sizeof(messages2) / sizeof(messages2[0]))];
-        printf("Producer %d sending: %s\n", producer_id, message);
-        msgq_send(mq, message);
-    }
-    return NULL;
-}
-
-void *consumer(void *arg) {
-    int consumer_id = *((int *) arg);
-    while (1) {
-        char *message = msgq_recv(mq);
-        if (message == NULL) {
-            break;
-        }
-        printf("Consumer %d received: %s\n", consumer_id, message);
-        int i;
-        for (i = 0; i < NUM_MESSAGES && consumer_buffers[consumer_id][i] != NULL; i++);
-        if (i < NUM_MESSAGES) {
-            consumer_buffers[consumer_id][i] = message;
-        }
-    }
-    return NULL;
-}
 
 // sends msgs in messages[]
 void *promtAndSend(void *arg) {
@@ -69,11 +49,11 @@ void *promtAndSend(void *arg) {
 // sends msgs in messages2[]
 void *send2(void *arg) {
     for (int i = 0; i < sizeof(messages2)/sizeof(messages2[0]); i++) {
-            printf("sending: %s\n", messages2[i]);
-            msgq_send(mq, messages2[i]);
-//            int length  = msgq_len(mq);
-//            printf("%d\n", length);
-        }
+        printf("sending: %s\n", messages2[i]);
+        pthread_mutex_lock(&mq_mutex);
+        msgq_send(mq, messages2[i]);
+        pthread_mutex_unlock(&mq_mutex);
+    }
     return NULL;
 }
 
@@ -90,6 +70,25 @@ void *recvMsgs(void *arg) {
     }
     return NULL;
 }
+//recieves msg from mq. writes to an array
+void *recvAndWrite(void *arg) {
+    char** array = (char**)arg;
+    int count = 0;
+    pthread_mutex_lock(&mq_mutex);
+    int msg_count = msgq_len(mq);
+    pthread_mutex_unlock(&mq_mutex);
+    for (int i = 0; i < msg_count; i++) {
+        pthread_mutex_lock(&mq_mutex);
+        char *m = msgq_recv(mq);
+        pthread_mutex_unlock(&mq_mutex);
+        array[count] = malloc(strlen(m) + 1);
+        strcpy(array[count], m);
+        //msgq_show(mq);
+        count++;
+    }
+    return NULL;
+}
+
 
 void *passiton(void *arg) {
     int* me_ptr = (int*) arg;
@@ -107,7 +106,6 @@ void *passiton(void *arg) {
     return NULL;
 }
 
-#define MSGQLEN 100
 
 int main(int argc, char *argv[]) {
     pthread_t p1, p2, p3, p4, p5;
@@ -143,33 +141,111 @@ int main(int argc, char *argv[]) {
         pthread_join(p2,NULL);
         printf("james5\n");
         break;
-    case '3':
-        mq = msgq_init(MSGQLEN);
-        printf("producer consumer\n");
+      case '3':
+        //mq = msgq_init(sizeof(messages2)*3);
+        printf("producer comsumer\n");
+        mq = msgq_init(DEFPRODUCERS*DEFMESSAGES);
+        pthread_t producers[DEFPRODUCERS], consumers[DEFCONSUMERS];
+        int producer_ids[DEFPRODUCERS], consumer_ids[DEFCONSUMERS];
 
-        int producer_args[NUM_PRODUCERS] = {0, NUM_MESSAGES};
-        pthread_t producer_threads[NUM_PRODUCERS];
-        for (int i = 0; i < NUM_PRODUCERS; i++) {
-            pthread_create(&producer_threads[i], NULL, producer, &producer_args[i]);
+        pthread_mutex_init(&mq_mutex, NULL);
+
+        for (int i = 0; i < DEFPRODUCERS; i++) {
+            producer_ids[i] = i;
         }
 
-        for (int i = 0; i < NUM_PRODUCERS; i++) {
-            pthread_join(producer_threads[i], NULL);
+        for (int i = 0; i < DEFCONSUMERS; i++) {
+            consumer_ids[i] = i;
+        }
+        // mq = msgq_init(MSGQLEN);
+        // pthread_create(&p1 ,NULL, send2, NULL);
+        // pthread_create(&p2, NULL, send2, NULL);
+        for (int i = 0; i < DEFPRODUCERS; i++) {
+            pthread_create(&producers[i], NULL, send2, NULL);
+        }
+        for (int i = 0; i < DEFPRODUCERS; i++) {
+            pthread_join(producers[i], NULL);
         }
 
+
+        // pthread_join(p1, NULL);
+        // pthread_join(p2, NULL);
+        printf("stop1\n");
+        //the last argument in the create thread function is the array the thread is to write to cast to void to meet parameters
+        // pthread_create(&p3, NULL, recvAndWrite, (void *)c1);
+        // printf("stop2\n");
+        // pthread_create(&p4, NULL, recvAndWrite, (void *)c2);
+        // printf("stop3\n");
+        // pthread_create(&p5, NULL, , (void *)c3);
+        // printf("stop4\n");
+        // printf("MQ len : %d\n",msgq_len(mq));
+
+        char ***consumers_array = malloc(DEFCONSUMERS * sizeof(char **));
+
+
+        for (int i = 0; i < DEFCONSUMERS; i++) 
+        {
+            consumers_array[i][DEFMESSAGES*DEFPRODUCERS] = NULL;
+        }
+
+        for (int i = 0; i < DEFCONSUMERS; i++) 
+        {
+            pthread_create(&consumers[i], NULL, recvAndWrite, (void *)consumers_array[i]);
+            printf("stop%d\n", i+DEFPRODUCERS);
+        }
+        
         sleep(5);
+        for (int i = 0; i < DEFCONSUMERS; i++) 
+        {
+            for (int j = 0; j < sizeof(consumers_array[i]) / sizeof(consumers_array[i][0]); i++) 
+            {
+                if (consumers_array[i][j] != NULL) 
+                {
+                    printf("Consumer %d releasing message: %s\n", j, consumers_array[i][j]);
+                }
+            }
 
-        pthread_t consumer_threads[NUM_CONSUMERS];
-        int consumer_args[NUM_CONSUMERS] = {1, 2, 3};
-
-        for (int i = 0; i < NUM_CONSUMERS; i++) {
-            pthread_create(&consumer_threads[i], NULL, consumer, &consumer_args[i]);
         }
 
-        for (int i = 0; i < NUM_CONSUMERS; i++) {
-            pthread_join(consumer_threads[i], NULL);
-        }
 
+
+//        pthread_join(p3, NULL);
+//        pthread_join(p4, NULL);
+//        pthread_join(p5, NULL);
+
+//        #define NUM_THREADS 3
+
+//        pthread_t threads[NUM_THREADS];
+//        int args[NUM_THREADS][2];
+
+//        int counter = 1;
+
+//        printf("length of array: %d\n", msgq_len(mq));
+
+  //      if (counter > 3)
+  //      {
+    //        counter = 1;
+    //    }
+      //  printf("counter: %d printing : ", counter);
+     //   pthread_create(&threads[counter], NULL, recvMsgs, NULL);
+      //  pthread_join(threads[counter], NULL);
+       // printf("length of array: %d\n", msgq_len(mq));
+
+        // while(msgq_len > 0)
+        // {
+        //     // create threads and pass in arguments
+        //     for (int i = 0; i < NUM_THREADS; i++) {
+        //         args[i][0] = i * (sizeof(messages2)*2 / NUM_THREADS);
+        //         args[i][1] = (i + 1) * (sizeof(messages2)*2 / NUM_THREADS);
+        //         pthread_create(&threads[i], NULL, recvMsgs, (void *) args[i]);
+        //     }
+        // }
+
+        // // wait for threads to finish
+        // for (int i = 0; i < NUM_THREADS; i++) 
+        // {
+        //     pthread_join(threads[i], NULL);
+        // }
         break;
 
 
@@ -178,5 +254,6 @@ int main(int argc, char *argv[]) {
         break;
     }
     return 0;
+
 }
 
