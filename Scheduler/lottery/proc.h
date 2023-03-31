@@ -62,7 +62,7 @@ struct proc {
   int stride;                  // number of "strides" given to a process      JOON
   int cur_stride;              // number of "strides" a process has           JOON
   int nice;
-  int weight;
+  double weight;
   int timeslice;
   int vruntime;
 };

@@ -49,7 +49,7 @@ void *promtAndSend(void *arg) {
 // sends msgs in messages2[]
 void *send2(void *arg) {
     for (int i = 0; i < sizeof(messages2)/sizeof(messages2[0]); i++) {
-        printf("sending: %s\n", messages2[i]);
+        // printf("sending: %s\n", messages2[i]);
         pthread_mutex_lock(&mq_mutex);
         msgq_send(mq, messages2[i]);
         pthread_mutex_unlock(&mq_mutex);
@@ -62,11 +62,11 @@ void *send2(void *arg) {
 void *recvMsgs(void *arg) {
     sleep(5);
     int msg_count = msgq_len(mq);
-    printf("mq msg_count: %d\n", msg_count);
+    // printf("mq msg_count: %d\n", msg_count);
     for (int i = 0; i < msg_count; i++) {
         char *m = msgq_recv(mq);
-        printf("recvMsgs: %s\n", m);
-        //free(m);
+        // printf("recvMsgs: %s\n", m);
+        free(m);
     }
     return NULL;
 }
@@ -83,7 +83,7 @@ void *recvAndWrite(void *arg) {
         pthread_mutex_unlock(&mq_mutex);
         array[count] = malloc(strlen(m) + 1);
         strcpy(array[count], m);
-        //msgq_show(mq);
+        msgq_show(mq);
         count++;
     }
     return NULL;
@@ -154,36 +154,46 @@ int main(int argc, char *argv[]) {
         pthread_create(&p2, NULL, send2, NULL);
         pthread_join(p1, NULL);
         pthread_join(p2, NULL);
-        printf("stop1\n");
+        // printf("stop1\n");
         sleep(5);
         //the last argument in the create thread function is the array the thread is to write to cast to void to meet parameters
         pthread_create(&p3, NULL, recvAndWrite, (void *)c1);
-        printf("stop2\n");
+        // printf("stop2\n");
         pthread_create(&p4, NULL, recvAndWrite, (void *)c2);
-        printf("stop3\n");
+        // printf("stop3\n");
         pthread_create(&p5, NULL, recvAndWrite, (void *)c3);
-        printf("stop4\n");
-        printf("MQ len : %d\n", msgq_len(mq));
+        // printf("stop4\n");
+        // printf("MQ len : %d\n", msgq_len(mq));
+        sleep(5);
+
+        int consumerCounter1 = 0;
+        int consumerCounter2 = 0;
+        int consumerCounter3 = 0;
+
         for (int i = 0; i < sizeof(c1) / sizeof(c1[0]); i++) 
         {
             
             if (c1[i] != NULL) {
                 printf("C1 %s\n", c1[i]);
+                consumerCounter1++;
             }
         }
 
         for (int i = 0; i < sizeof(c2) / sizeof(c2[0]); i++) {
             if (c2[i] != NULL) { 
                 printf("C2 %s\n", c2[i]);
+                consumerCounter2++;
             }
         }
 
         for (int i = 0; i < sizeof(c3) / sizeof(c3[0]); i++) {
             if (c3[i] != NULL) {
                 printf("C3 %s\n", c3[i]);
+                consumerCounter3++;
             }
         }
 
+        printf("Consumer 1 produced: %d, Consumer 2 produced: %d, Consumer 3 produced: %d, Total Consumed: %d\n", consumerCounter1, consumerCounter2, consumerCounter3, consumerCounter1+consumerCounter2+consumerCounter3);
 
 //        pthread_join(p3, NULL);
 //        pthread_join(p4, NULL);

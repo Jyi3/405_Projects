@@ -173,8 +173,8 @@ int executeCmd(char** params, int nparams)
             }
             if (strcmp(scheduler_name, "lcfs") == 0) 
             {
-                pid = lcfs_scheduler();
                 printf("LCFS scheduler selected pid: %d\n", pid);
+                pid = lcfs_scheduler();
                 break;
             }
             else

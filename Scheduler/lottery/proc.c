@@ -366,44 +366,52 @@ l_scheduler(void)
 
 void linux_scheduler(void)
 {
-
   curr_proc->state = RUNNABLE;
   struct proc *p;
   int total_weight = 0;
   int latency = DEFLATENCY;
   int granularity = DEFGRANULARITY;
-  printf("total_weights: %d\n", total_weight);
 
-
-  acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if(p->pid != NULL)
     {
       // printf("EXISTS\n");
       p->weight = 1024 / (2 ^ (p->nice - 1));
-      total_weight = total_weight + p->weight;
+      if (p->weight <0 )
+      {
+        total_weight = total_weight + (p->weight*(-1));
+      }
+      else
+      {
+        total_weight = total_weight + p->weight;
+      }
     }
   }
-  printf("total_weights: %d\n",total_weight);
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
     if(p->pid != NULL)
     {
       // printf("EXISTS2!\n");
-      acquire(&ptable.lock);
-      p->timeslice = (p->weight / total_weight) * latency;
+      if (p->weight < 0 )
+      {
+        p->timeslice = ((p->weight*(-1)) / total_weight) * latency;
+      }
+      else
+      {
+        p->timeslice = (p->weight / total_weight) * latency;
+      }
       if (p->timeslice <= granularity)
       {
         p->timeslice = granularity;
       }
-      printf("pid: %d, timeslice: %d\n",p->pid, p->timeslice);
     }
   }
 
-  printf("total_weights: %d\n", total_weight);
+  
 
+  procdump();
 }
 
 void s_scheduler(void)
@@ -455,7 +463,6 @@ void s_scheduler(void)
   }
 
 
-  temp->cur_stride += temp->stride;
   curr_proc = temp;
   temp->state = RUNNING;
   release(&ptable.lock);
@@ -481,7 +488,14 @@ procdump(void)
     {
       // printf("EXISTS\n");
       p->weight = 1024 / (2 ^ (p->nice - 1));
-      total_weight = total_weight + p->weight;
+      if (p->weight <0 )
+      {
+        total_weight = total_weight + (p->weight*(-1));
+      }
+      else
+      {
+        total_weight = total_weight + p->weight;
+      }
     }
   }
 
@@ -491,7 +505,14 @@ procdump(void)
     {
       // printf("EXISTS2!\n");
       acquire(&ptable.lock);
-      p->timeslice = (p->weight / total_weight) * latency;
+      if (p->weight <0 )
+      {
+        p->timeslice = ((p->weight*(-1)) / total_weight) * latency;
+      }
+      else
+      {
+        p->timeslice = (p->weight / total_weight) * latency;
+      }
       if (p->timeslice <= granularity)
       {
         p->timeslice = granularity;
@@ -503,7 +524,7 @@ procdump(void)
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->pid > 0)
-      printf("pid: %d, parent: %d state: %s tickets: %d, nice: %d, weight: %d, timeslice: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state], p->ticket, p->nice, p->weight, p->timeslice);
+      printf("pid: %d, parent: %d state: %s tickets: %d, nice: %d, weight: %.0lf, timeslice: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state], p->ticket, p->nice, p->weight, p->timeslice);
       
 }
 
