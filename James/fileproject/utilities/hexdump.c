@@ -23,8 +23,10 @@
 int blocks = 10, start_block = 0;
 char filename[100];
 
-void panic();
-
+void panic(char *s) {
+    printf("%s\n", s);
+    exit(1);
+}
 int get_opts(int count, char *args[]) {
     int opt, len, i, good = 1;
     while (good && (opt = getopt(count, args, "s:l:")) != -1) {

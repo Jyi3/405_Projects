@@ -20,7 +20,7 @@
 #define ROOTINO 1        // root i-number
 #define BSIZE 512        // block size
 #define NBLOCKS 1024     // number of blocks in file system
-#define FSNAME "tinyfs"  // File system name
+#define FSNAME "JamesJoon"  // File system name
 
 // File system super block
 struct superblock {

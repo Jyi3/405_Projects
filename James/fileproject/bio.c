@@ -13,7 +13,14 @@
 #include "fcntl.h"
 #include "user.h"
 
+struct cpu cpus[NCPU];
+
 int fs;
+
+void panic(char *s) {
+    printf("%s\n", s);
+    exit(1);
+}
 
 int bread(uint block, char *buf) {
     int off = lseek(fs, block*BSIZE, SEEK_SET);
@@ -113,7 +120,8 @@ int main(int argc, char *argv[]) {
         readfsinfo();
         // allocate Root Directory ("/")
         struct inode *ip = ialloc(T_DIR);
-        ip->inum = 1;
+        //ip->inum = 1;
+        ip->inum = 4;
         ip->ref = 0xab;
         printf("inode num: %d, type: %d\n", ip->inum, ip->type);
         writefsinfo();
@@ -137,7 +145,8 @@ int main(int argc, char *argv[]) {
         // Open TFS and establish curr_proc so we can do application code
         // curr_proc is a macro defined in proc.h
         curr_proc = malloc(sizeof(struct proc));
-        strcpy(curr_proc->name, "Gusty");
+        //strcpy(curr_proc->name, "Gusty");
+        strcpy(curr_proc->name, "JAMESJOON");//my file
         openfs(FSNAME);
         printf("fs : %d\n", fs);
         memset(b, 0, BSIZE);
@@ -162,9 +171,10 @@ int main(int argc, char *argv[]) {
         */
 
         // Perform application code
-        int fd1 = tfs_open("GUSTY", TO_CREATE | TO_RDWR, 0);
+        //int fd1 = tfs_open("GUSTY", TO_CREATE | TO_RDWR, 0);
+        int fd1 = tfs_open("JAMESJOON", TO_CREATE | TO_RDWR, 0);
         printf("fd1: %d\n", fd1);
-        s = tfs_write(fd1, "COOPER123", 9);
+        s = tfs_write(fd1, "JAMESJOON works", 15);
         printf("tfs_write bytes: %d\n", s);
         int fd2 = tfs_open("HELLOWORLD", TO_CREATE | TO_RDWR, 0);
         printf("fd2: %d\n", fd2);
@@ -206,7 +216,8 @@ int main(int argc, char *argv[]) {
         // Open TFS and establish curr_proc so we can do application code
         // curr_proc is a macro defined in proc.h
         curr_proc = malloc(sizeof(struct proc));
-        strcpy(curr_proc->name, "Gusty");
+        //strcpy(curr_proc->name, "Gusty");
+        strcpy(curr_proc->name, "JAMESJOON");
         openfs(FSNAME);
         printf("fs : %d\n", fs);
         memset(b, 0, BSIZE);
@@ -217,14 +228,14 @@ int main(int argc, char *argv[]) {
         // Perform application code
         char buffer[512];
         strcpy(buffer, "sometext");
-        int fd3 = tfs_open("Another", TO_RDONLY, 0);
-        printf("fd3: %d\n", fd3);
-        s = tfs_read(fd3, buffer, 19); 
-        printf("tfs_read bytes: fd: %d, bytes read: %d value read: %s\n", fd3, s, buffer);
+        //int fd3 = tfs_open("Another", TO_RDONLY, 0);
+        //printf("fd3: %d\n", fd3);
+        //s = tfs_read(fd3, buffer, 19); 
+        //printf("tfs_read bytes: fd: %d, bytes read: %d value read: %s\n", fd3, s, buffer);
 
-        int fd4 = tfs_open("MyFile", TO_RDONLY, 0);
+        int fd4 = tfs_open("JAMESJOON", TO_RDONLY, 0);
         printf("fd4: %d\n", fd4);
-        s = tfs_read(fd4, buffer, 47);
+        s = tfs_read(fd4, buffer, 14);
         printf("tfs_read bytes: fd: %d, bytes read: %d value read: %s\n", fd4, s, buffer);
 
 
