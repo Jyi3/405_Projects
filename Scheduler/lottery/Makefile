@@ -5,7 +5,7 @@ CFLAGS = -g -Wall
 default: procprog
 
 procprog: main.o proc.o
-	$(CC) $(CFLAGS) -o procprog main.o proc.o
+	$(CC) $(CFLAGS) -o procprog main.o proc.o -lm
 
 main.o: main.c types.h defs.h
 	$(CC) $(CFLAGS) -c main.c

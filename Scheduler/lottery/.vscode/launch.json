@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "//wsl.localhost/Ubuntu/home/jyi3/405/Group Projects/lottery",
-      "program": "//wsl.localhost/Ubuntu/home/jyi3/405/Group Projects/lottery/build/Debug/outDebug",
+      "cwd": "//wsl.localhost/Ubuntu/home/jyi3/405/Group Projects/405_Projects/Scheduler/lottery",
+      "program": "//wsl.localhost/Ubuntu/home/jyi3/405/Group Projects/405_Projects/Scheduler/lottery/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
