@@ -10,6 +10,7 @@
 #include "defs.h"
 #include "proc.h"
 #include <stdint.h>
+#include <math.h>
 
 //!JAMES!
 #define DEFTICKS 50 
@@ -378,7 +379,7 @@ void linux_scheduler(void)
   {
     if(p->pid != 0)
     {
-      p->weight = 1024 / (2 ^ (p->nice - 1));
+      p->weight = 1024 / pow(1.25, p->nice);
       if (p->weight < 0 )
       {
         total_weight = total_weight + (p->weight * (-1));
@@ -390,50 +391,56 @@ void linux_scheduler(void)
     }
   }
 
-  struct proc *start = curr_proc;
-  struct proc *next = start + 1;
-  struct proc *selected = NULL;
-
-  do
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
-    if(next >= &ptable.proc[NPROC])
+    if(p->pid != 0)
     {
-      next = ptable.proc;
-    }
-
-    if(next->pid != 0 && next->state == RUNNABLE)
-    {
-      if (next->weight < 0)
+      if (p->weight < 0)
       {
-        next->timeslice = ((next->weight * (-1)) / total_weight) * latency;
+        p->timeslice = (p->weight  / total_weight) * latency;
       }
       else
       {
-        next->timeslice = (next->weight / total_weight) * latency;
+        p->timeslice = (p->weight / total_weight) * latency;
       }
-
-      if (next->timeslice <= granularity)
+      if (p->timeslice <= granularity)
       {
-        next->timeslice = granularity;
+        p->timeslice = granularity;
       }
-
-      selected = next;
-      break;
     }
+  }
 
-    next++;
-
-  } while (next != start);
+  struct proc *selected = NULL;
+  
+  // Find the first runnable process and the process with the lowest vruntime
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if (p->pid != 0 && p->state == RUNNABLE)
+    {
+      if (selected == NULL || p->vruntime < selected->vruntime)
+      {
+        selected = p;
+      }
+    }
+  }
 
   if (selected != NULL)
   {
     curr_proc = selected;
+    // Update the vruntime of the selected process
+    if(((curr_proc->weight / total_weight) * curr_proc->timeslice) < granularity)
+    {
+      curr_proc->vruntime += 10;
+    }
+    else
+    {
+      curr_proc->vruntime += (curr_proc->weight / total_weight) * curr_proc->timeslice;
+    }
     curr_proc->state = RUNNING;
   }
 
   procdump();
 }
-
 
 void s_scheduler(void)
 {
@@ -508,7 +515,7 @@ procdump(void)
     if(p->pid != 0)
     {
       // printf("EXISTS\n");
-      p->weight = 1024 / (2 ^ (p->nice - 1));
+      p->weight = 1024 / pow(1.25, p->nice);
       if (p->weight <0 )
       {
         total_weight = total_weight + (p->weight*(-1));
@@ -528,7 +535,7 @@ procdump(void)
       acquire(&ptable.lock);
       if (p->weight <0 )
       {
-        p->timeslice = ((p->weight*(-1)) / total_weight) * latency;
+        p->timeslice = ((p->weight) / total_weight) * latency;
       }
       else
       {
@@ -542,10 +549,29 @@ procdump(void)
   }
 
 
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if(p->pid > 0) {
+          printf("pid: %d, parent: %d ", p->pid, p->parent == 0 ? 0 : p->parent->pid);
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->pid > 0)
-      printf("pid: %d, parent: %d state: %s tickets: %d, nice: %d, weight: %.0lf, timeslice: %d \n", p->pid, p->parent == 0 ? 0 : p->parent->pid, procstatep[p->state], p->ticket, p->nice, p->weight, p->timeslice);
+          if (p->state == RUNNING) {
+              printf("state: \033[32m"); // Set text color to green
+          }
+          else
+          {
+              printf("state: "); // Set text color to green
+
+          }
+
+          printf("%s ", procstatep[p->state]);
+
+          if (p->state == RUNNING) {
+              printf("\033[0m"); // Reset text color to default
+          }
+
+          printf("tickets: %d, nice: %d, weight: %.0lf, timeslice: %d, vruntime = %.0lf\n", p->ticket, p->nice, p->weight, p->timeslice, p->vruntime);
+      }
+  }
+
       
 }
 

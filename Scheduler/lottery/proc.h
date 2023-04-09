@@ -64,6 +64,6 @@ struct proc {
   int nice;
   double weight;
   int timeslice;
-  int vruntime;
+  double vruntime;
 };
 
