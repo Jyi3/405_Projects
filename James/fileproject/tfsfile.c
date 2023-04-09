@@ -41,7 +41,7 @@ static int fdalloc(struct file *f) {
   return -1;
 }
 
-int tfs_dup(struct file *f) {
+int tfs_dup(struct file *f) { //traced
   int fd;
   if((fd=fdalloc(f)) < 0)
     return -1;
@@ -49,7 +49,7 @@ int tfs_dup(struct file *f) {
   return fd;
 }
 
-int tfs_read(int fd, void *p, int n) {
+int tfs_read(int fd, void *p, int n) {//traced
   struct file *f;
   if (fd_to_file(fd, &f) < 0)
     return -1;
