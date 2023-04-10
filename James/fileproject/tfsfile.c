@@ -56,14 +56,14 @@ int tfs_read(int fd, void *p, int n) {//traced
   return fileread(f, p, n);
 }
 
-int tfs_write(int fd, void *p, int n) {
+int tfs_write(int fd, void *p, int n) {//traced
   struct file *f;
   if (fd_to_file(fd, &f) < 0)
     return -1;
   return filewrite(f, p, n);
 }
 
-int tfs_close(int fd) {
+int tfs_close(int fd) {//traced
   struct file *f;
   if (fd_to_file(fd, &f) < 0)
     return -1;
@@ -72,7 +72,7 @@ int tfs_close(int fd) {
   return 0;
 }
 
-int tfs_fstat(int fd, struct tfs_stat *st) {
+int tfs_fstat(int fd, struct tfs_stat *st) {//traced
   struct file *f;
   if (fd_to_file(fd, &f) < 0)
     return -1;
@@ -80,7 +80,7 @@ int tfs_fstat(int fd, struct tfs_stat *st) {
 }
 
 // Create the path new as a link to the same inode as old.
-int tfs_link(char *old, char *new) {
+int tfs_link(char *old, char *new) {//traced 
   char name[DIRSIZ];
   struct inode *dp, *ip;
 
@@ -108,7 +108,7 @@ bad:
 }
 
 // Is the directory dp empty except for "." and ".." ?
-static int isdirempty(struct inode *dp) {
+static int isdirempty(struct inode *dp) {//traced
   int off;
   struct dirent de;
 
