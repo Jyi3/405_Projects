@@ -17,7 +17,7 @@
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
-static int fd_to_file(int fd, struct file **pf) {
+static int fd_to_file(int fd, struct file **pf) {//given trace
   struct file *f;
 
   if(fd < 0 || fd >= NOFILE || (f=curr_proc->ofiles[fd]) == 0)
@@ -29,7 +29,7 @@ static int fd_to_file(int fd, struct file **pf) {
 
 // Allocate a file descriptor for the given file.
 // Takes over file reference from caller on success.
-static int fdalloc(struct file *f) {
+static int fdalloc(struct file *f) {//traced
   int fd;
 
   for(fd = 0; fd < NOFILE; fd++){
@@ -122,7 +122,7 @@ static int isdirempty(struct inode *dp) {//traced
 }
 
 //PAGEBREAK!
-int tfs_unlink(char *path) {
+int tfs_unlink(char *path) {//traced
   struct inode *ip, *dp;
   struct dirent de;
   char name[DIRSIZ];
@@ -156,7 +156,7 @@ int tfs_unlink(char *path) {
   return 0;
 }
 
-static struct inode* create(char *path, short type) {
+static struct inode* create(char *path, short type) {//traced
   uint off;
   struct inode *ip, *dp;
   char name[DIRSIZ];
@@ -190,7 +190,7 @@ static struct inode* create(char *path, short type) {
   return ip;
 }
 
-int tfs_open(char *path, int flags, int mode) {
+int tfs_open(char *path, int flags, int mode) {//traced
   int fd;
   struct file *f;
   struct inode *ip;
@@ -221,14 +221,14 @@ int tfs_open(char *path, int flags, int mode) {
   return fd;
 }
 
-int tfs_mkdir(char *path) {
+int tfs_mkdir(char *path) {//traced
   struct inode *ip;
   if ((ip = create(path, T_DIR)) == 0)
     return -1;
   return 0;
 }
 
-int tfs_chdir(char *path) {
+int tfs_chdir(char *path) {//traced
   struct inode *ip;
 
   if((ip = namei(path)) == 0)

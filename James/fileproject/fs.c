@@ -37,7 +37,7 @@ uint databitmap[BSIZE/4];  // block 3 is data block bitmap
 struct inode inodes[32];   // 32 inodes on blocks 4 through 7
 
 // Read the super block, bitmaps, and inodes.
-void readfsinfo() {
+void readfsinfo() {//traced
   int s = bread(1, buf);
   memcpy(&sb, buf, sizeof(sb));
   s = bread(2, buf);
@@ -58,13 +58,13 @@ void readfsinfo() {
 }
 
 // print_inodes can be used for debugging
-void print_inodes() {
+void print_inodes() {//traced
   for (int k = 0; k < 32; k++)
       printf("inodes[%d].ref, type, size, num, ctime: %x, %d, %d, %d, %x\n", k, inodes[k].ref, inodes[k].type, inodes[k].size, inodes[k].inum, inodes[k].ctime);
 }
 
 // Write the super block, bitmaps, and inodes.
-void writefsinfo() {
+void writefsinfo() {//traced
   memset(buf, 0, BSIZE);
   memcpy(buf, &sb, sizeof(sb));
   int s = bwrite(1, buf);
@@ -93,7 +93,7 @@ void writefsinfo() {
  * Our simple approach uses Block 3 for data block bitmap
  * First data block is block 8. Note start loop index.
  */
-uint balloc() {
+uint balloc() {//traced
   uint m;
   for(int bi = 8; bi < 1024; bi++) { // 1024 blocks for file data
     m = 1 << (bi % 32);
@@ -109,7 +109,7 @@ uint balloc() {
 }
 
 // Free a disk block.
-void bfree(uint bi) {
+void bfree(uint bi) {//traced
   uint m = 1 << (bi % 32);
   if((databitmap[bi/32] & m) == 0)
     panic("freeing free block");
@@ -139,7 +139,7 @@ time_t seconds;
 // Allocate a new inode with the given type
 // A free inode has a type of zero.
 // type is T_FILE, T_DIR, T_DEV
-struct inode* ialloc(short type) {
+struct inode* ialloc(short type) {//traced
   for(int inum = 1; inum < sb.ninodes; inum++) {
     if(inodes[inum].type == 0){  // a free inode
       memset(&inodes[inum], 0, sizeof(struct inode));
@@ -161,7 +161,7 @@ struct inode* ialloc(short type) {
 // ROOTINO is inodes[1]
 // Do not use inodes[0]
 // Need to have a ip->ref > 0 on the disk GUSTY-TODO
-struct inode* iget(uint inum) {
+struct inode* iget(uint inum) {//traced
   struct inode *ip, *empty;
 
   // Is the inode already cached?
@@ -190,7 +190,7 @@ struct inode* iget(uint inum) {
 
 // Increment reference count for ip.
 // Returns ip to enable ip = idup(ip1) idiom.
-struct inode* idup(struct inode *ip) {
+struct inode* idup(struct inode *ip) {//traced
   ip->ref++;
   return ip;
 }
