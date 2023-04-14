@@ -27,9 +27,10 @@ void panic(char *s) {
     printf("%s\n", s);
     exit(1);
 }
+
 int get_opts(int count, char *args[]) {
     int opt, len, i, good = 1;
-    while (good && (opt = getopt(count, args, "s:l:")) != -1) {
+    while (good && (opt = getopt(count, args, "s:l:i")) != -1) {
         int len, i;
         switch (opt) {
             case 's':
@@ -54,13 +55,17 @@ int get_opts(int count, char *args[]) {
                 if (good)
                     blocks = atoi(optarg);
                 break;
+            case 'i':
+                start_block = 4; // Assign a default value
+                break;
+            case 'e':
+                start_block = 10; // Assign a default value
+                break;
             case ':':
                 fprintf(stderr, "option missing value\n");
                 break;
             case '?':
-                if (optopt == 'l')
-                    fprintf(stderr, "Option -%c requires an argument.\n", optopt);
-                else if (optopt == 's')
+                if (optopt == 'l' || optopt == 's')
                     fprintf(stderr, "Option -%c requires an argument.\n", optopt);
                 else if (isprint(optopt))
                     fprintf(stderr, "Unknown option `-%c'.\n", optopt);
@@ -77,8 +82,9 @@ int get_opts(int count, char *args[]) {
     else if (good)
         strcpy(filename, args[optind]);
     return good;
-
 }
+
+
 
 int fs;
 
