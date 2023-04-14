@@ -200,7 +200,7 @@ struct inode* idup(struct inode *ip) {//traced
 // be recycled.
 // If that was the last reference and the inode has no links
 // to it, free the inode (and its content) on disk.
-void iput(struct inode *ip) {
+void iput(struct inode *ip) {//traced
   if(ip->ref == 1 && /*(ip->flags & I_VALID) &&*/ ip->nlink == 0){
     // inode has no links: truncate and free inode.
     ip->type = 0;
@@ -219,7 +219,7 @@ void iput(struct inode *ip) {
 // listed in block ip->blocks[NDIRECT].
 // Return the disk block address of the nth block in inode ip.
 // If there is no such block, bmap allocates one.
-static uint bmap(struct inode *ip, uint bn) {
+static uint bmap(struct inode *ip, uint bn) {//traced
   uint addr;
 
   if(bn < NDIRECT){
@@ -237,7 +237,7 @@ static uint bmap(struct inode *ip, uint bn) {
 // to it (no directory entries referring to it)
 // and has no in-memory reference to it (is
 // not an open file or current directory).
-static void itrunc(struct inode *ip) {
+static void itrunc(struct inode *ip) {//traced
   for(int i = 0; i < NDIRECT; i++){
     if(ip->blocks[i]){
       bfree(ip->blocks[i]);
@@ -250,7 +250,7 @@ static void itrunc(struct inode *ip) {
 }
 
 // Copy stat information from inode.
-void stati(struct inode *ip, struct tfs_stat *st)
+void stati(struct inode *ip, struct tfs_stat *st)//traced
 {
   st->ino = ip->inum;
   st->type = ip->type;
@@ -259,7 +259,7 @@ void stati(struct inode *ip, struct tfs_stat *st)
 }
 
 // Read data from inode.
-int readi(struct inode *ip, char *dst, uint off, uint n) {
+int readi(struct inode *ip, char *dst, uint off, uint n) {//traced
   uint tot, m;
 
   if(off > ip->size || off + n < off)
