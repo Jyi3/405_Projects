@@ -58,6 +58,9 @@ int get_opts(int count, char *args[]) {
             case 'i':
                 start_block = 4; // Assign a default value
                 break;
+            case 'e':
+                start_block = 10; // Assign a default value
+                break;
             case ':':
                 fprintf(stderr, "option missing value\n");
                 break;
