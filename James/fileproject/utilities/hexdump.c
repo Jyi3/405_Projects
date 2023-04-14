@@ -30,7 +30,7 @@ void panic(char *s) {
 
 int get_opts(int count, char *args[]) {
     int opt, len, i, good = 1;
-    while (good && (opt = getopt(count, args, "s:l:i")) != -1) {
+    while (good && (opt = getopt(count, args, "s:l:i:a:")) != -1) {
         int len, i;
         switch (opt) {
             case 's':
@@ -59,7 +59,7 @@ int get_opts(int count, char *args[]) {
                 start_block = 4; // Assign a default value
                 break;
             case 'e':
-                start_block = 10; // Assign a default value
+                start_block = strlen(optarg)-1; // Assign a default value
                 break;
             case ':':
                 fprintf(stderr, "option missing value\n");
